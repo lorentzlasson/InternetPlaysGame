@@ -7,6 +7,9 @@ services:
       - ./src:/app/src
       - ./deno.jsonc:/app/deno.jsonc
       - ./import_map.json:/app/import_map.json
+      - ./.env:/app/.env
+    environment:
+      POSTGRES_HOST: db
 
   db:
     image: postgres:15

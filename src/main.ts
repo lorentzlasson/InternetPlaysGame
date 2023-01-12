@@ -1,10 +1,14 @@
+import 'loadEnv';
 import { serve } from 'http_server';
 import { executeNextMove, getState, recordMove } from './game.ts';
-
 import { isDirection } from './common.ts';
 import ui from './ui/main.tsx';
+import * as db from './db.ts';
 
 const PORT = 8000;
+
+const game = await db.init();
+console.log(`Starting game ${game.id}`);
 
 executeNextMove(() => {});
 
