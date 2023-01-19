@@ -5,10 +5,7 @@ filename = "src/**/*.sql"
 filename = "migrations/*.sql"
 
 [database]
-host = "db"
-user = "postgres"
-dbname = "postgres"
-password = "foo"
+url = "${DATABASE_URL}"
 
 [migra]
 safe = false

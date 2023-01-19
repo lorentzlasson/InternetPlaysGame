@@ -24,6 +24,7 @@ services:
     user: "${UID_GID}"
     environment:
       NAME: ${NAME}
+      DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:$POSTGRES_PORT/$POSTGRES_DB
     profiles:
       - tooling
     volumes:
@@ -34,6 +35,8 @@ services:
 
   migration_run:
     build: db/migration_run
+    environment:
+      DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:$POSTGRES_PORT/$POSTGRES_DB
     profiles:
       - tooling
     volumes:
@@ -45,7 +48,7 @@ services:
     build: db/type_generate
     user: "${UID_GID}"
     environment:
-      DATABASE_URL: postgres://postgres@db
+      DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:$POSTGRES_PORT/$POSTGRES_DB
     profiles:
       - tooling
     volumes:

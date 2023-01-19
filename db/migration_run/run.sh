@@ -1,3 +1,3 @@
 #!/bin/bash
 
-refinery migrate
+refinery migrate -e DATABASE_URL
