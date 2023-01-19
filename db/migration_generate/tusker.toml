@@ -8,6 +8,7 @@ filename = "migrations/*.sql"
 host = "db"
 user = "postgres"
 dbname = "postgres"
+password = "foo"
 
 [migra]
 safe = false

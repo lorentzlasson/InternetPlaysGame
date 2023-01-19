@@ -3,6 +3,6 @@ db_type = "Postgres"
 db_host = "db"
 db_port = "5432"
 db_user = "postgres"
-db_pass = ""
+db_pass = "foo"
 db_name = "postgres"
 trust_cert = false
