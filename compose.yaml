@@ -18,7 +18,6 @@ services:
       - 5432:5432
     environment:
       POSTGRES_PASSWORD: foo
-      POSTGRES_INITDB_ARGS: "--auth md5"
 
   migration_generate:
     build: db/migration_generate

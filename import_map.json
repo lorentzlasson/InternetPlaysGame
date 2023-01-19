@@ -2,7 +2,7 @@
   "imports": {
     "loadEnv": "https://deno.land/std@0.167.0/dotenv/load.ts",
     "kysely": "https://cdn.jsdelivr.net/npm/kysely/dist/esm/index.js",
-    "kysely_postgres": "https://deno.land/x/kysely_postgres@v0.0.3/mod.ts",
+    "kysely_postgres": "https://raw.githubusercontent.com/lorentzlasson/kysely-deno-postgres/main/mod.ts",
     "nano_jsx": "https://deno.land/x/nano_jsx@v0.0.34/mod.ts",
     "http_server": "https://deno.land/std@0.160.0/http/server.ts",
     "sinco": "https://deno.land/x/sinco@v4.1.0/mod.ts",
