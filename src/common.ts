@@ -51,6 +51,7 @@ export type Direction = typeof DIRECTIONS[number];
 
 // ---------- CONSTANTS ----------
 
+// deno-lint-ignore no-explicit-any
 const cartesian = (...a: any[][]) =>
   a.reduce((a2, b) => a2.flatMap((d) => b.map((e) => [d, e].flat())));
 export const range = (max: number) => Array.from(Array(max).keys());
@@ -83,6 +84,7 @@ export const DEFAULT_MOVE_SELECTION_MILLIS = 5000;
 
 // ---------- PURE ----------
 
+// deno-lint-ignore no-explicit-any
 export const isDirection = (token: any): token is Direction =>
   DIRECTIONS.includes(token);
 
