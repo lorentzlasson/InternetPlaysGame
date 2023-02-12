@@ -38,7 +38,7 @@ services:
     build: db/migration_generate
     user: "${UID_GID}"
     environment:
-      NAME: ${NAME}
+      NAME: ${MIGRATION_NAME}
       DATABASE_URL: ${DOCKER_DB_URL}
     profiles:
       - tooling
