@@ -17,3 +17,18 @@ jobs:
       - run: deno fmt --check
       - run: deno lint
       - run: deno task test:smoke
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/deployctl@v1
+        with:
+          project: thegame
+          entrypoint: src/main.ts
