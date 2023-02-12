@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY src ./src
 COPY deno.jsonc .
+COPY import_map.json .
 
-RUN deno cache src/dep.ts
+RUN deno cache ./src/main.ts --import-map=import_map.json
 
-CMD deno task dev
-
+CMD deno task start
