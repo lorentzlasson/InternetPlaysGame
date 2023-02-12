@@ -16,6 +16,7 @@ sleep 1 # Not very robust
 
 echo "# RUN TEST"
 docker compose run --rm smoke_test
+exit_code=$?
 
 if [ -n "$DEBUG" ]; then
   docker compose logs
@@ -23,3 +24,5 @@ fi
 
 echo "# KILL GAME SERVER"
 docker compose down 2> /dev/null
+
+exit $exit_code
