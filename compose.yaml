@@ -39,7 +39,7 @@ services:
     user: "${UID_GID}"
     environment:
       NAME: ${MIGRATION_NAME}
-      DATABASE_URL: ${DOCKER_DB_URL}
+      DATABASE_URL: ${DATABASE_URL}
     profiles:
       - tooling
     volumes:
@@ -51,11 +51,10 @@ services:
   migration_run:
     build: db/migration_run
     environment:
-      DATABASE_URL: ${DOCKER_DB_URL}
+      DATABASE_URL: ${DATABASE_URL}
     profiles:
       - tooling
     volumes:
-      - ./db/migration_run/refinery.toml:/app/refinery.toml
       - ./db/migration_run/run.sh:/app/run.sh
       - ./db/migrations:/app/migrations
 
@@ -63,7 +62,7 @@ services:
     build: db/type_generate
     user: "${UID_GID}"
     environment:
-      DATABASE_URL: ${DOCKER_DB_URL}
+      DATABASE_URL: ${DATABASE_URL}
     profiles:
       - tooling
     volumes:
