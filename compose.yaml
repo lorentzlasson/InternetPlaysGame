@@ -10,8 +10,19 @@ services:
       - ./deno.jsonc:/app/deno.jsonc
       - ./import_map.json:/app/import_map.json
       - ./.env:/app/.env
+
+  smoke_test:
+    build:
+      context: .
+      dockerfile: ./test/Dockerfile
     environment:
-      POSTGRES_HOST: db
+      GAME_HOST: game
+    profiles:
+      - test
+    volumes:
+      - ./test:/app/test
+      - ./deno.jsonc:/app/deno.jsonc
+      - ./import_map.json:/app/import_map.json
 
   db:
     image: postgres:15
@@ -20,6 +31,8 @@ services:
       - 5432:5432
     environment:
       POSTGRES_PASSWORD: foo
+    volumes:
+      - ./db/src:/docker-entrypoint-initdb.d
 
   migration_generate:
     build: db/migration_generate

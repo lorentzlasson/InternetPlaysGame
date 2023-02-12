@@ -1,10 +1,16 @@
 import { assertArrayIncludes, assertEquals, assertNotEquals } from 'asserts';
 
 import { Page } from 'sincoPage';
-import { MOVE_SELECTION_MILLIS } from '../src/game.ts';
-import { Direction, Emoji, Position } from '../src/common.ts';
+import {
+  Direction,
+  Emoji,
+  MOVE_SELECTION_MILLIS,
+  Position,
+} from '../src/common.ts';
 
 type MoveAttempt = { name: string; direction: Direction };
+
+const GAME_HOST = Deno.env.get('GAME_HOST');
 
 const setName = async (page: Page, name: string) => {
   const inputName = await page.querySelector('input[type=text]');
@@ -16,7 +22,8 @@ const recordMove = async (page: Page, direction: string) => {
   await btnRight.click();
 };
 
-const loadPage = (page: Page) => () => page.location('http://localhost:8000');
+const loadPage = (page: Page) => () =>
+  page.location(`http://${GAME_HOST}:8000`);
 
 const recordMoves = (page: Page) => async (moveAttempts: MoveAttempt[]) => {
   for await (const { name, direction } of moveAttempts) {

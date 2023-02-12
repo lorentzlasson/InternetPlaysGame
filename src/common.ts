@@ -82,6 +82,10 @@ export const POSITIONS: Position[] = cartesian(range(WIDTH), range(HEIGHT));
 
 export const DEFAULT_MOVE_SELECTION_MILLIS = 5000;
 
+export const MOVE_SELECTION_MILLIS =
+  parseInt(Deno.env.get('MOVE_SELECTION_MILLIS') || '') ||
+  DEFAULT_MOVE_SELECTION_MILLIS;
+
 // ---------- PURE ----------
 
 // deno-lint-ignore no-explicit-any

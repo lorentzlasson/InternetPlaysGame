@@ -1,5 +1,4 @@
 import {
-  DEFAULT_MOVE_SELECTION_MILLIS,
   Direction,
   Entity,
   isAvatar,
@@ -8,16 +7,13 @@ import {
   isSamePosition,
   Move,
   MOVE_MOVEMENT_MAP,
+  MOVE_SELECTION_MILLIS,
   MoveCandidate,
   Position,
   positionIsAllowed,
   POSITIONS,
   State,
 } from './common.ts';
-
-export const MOVE_SELECTION_MILLIS =
-  parseInt(Deno.env.get('MOVE_SELECTION_MILLIS') || '') ||
-  DEFAULT_MOVE_SELECTION_MILLIS;
 
 // ---------- STATE ----------
 

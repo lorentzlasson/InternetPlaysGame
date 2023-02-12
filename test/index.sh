@@ -4,22 +4,22 @@ export COMPOSE_FILE=compose.yaml:compose.test.yaml
 
 # Used both by game server and test runner.
 # Increase if test gets flaky
-export MOVE_SELECTION_MILLIS=300
-
-SERVICE=game
+export MOVE_SELECTION_MILLIS=500
 
 echo "# STARTING GAME SERVER IN CONTAINER"
-docker compose up --detach $SERVICE
+docker compose up --detach db
+sleep 1 # Not very robust
+docker compose up --detach game
 
 echo "# WAIT FOR GAME SERVER TO START"
 sleep 1 # Not very robust
 
 echo "# RUN TEST"
-deno task test
+docker compose run --rm smoke_test
 
 if [ -n "$DEBUG" ]; then
-  docker compose logs $SERVICE
+  docker compose logs
 fi
 
 echo "# KILL GAME SERVER"
-docker compose rm --stop --force $SERVICE 2> /dev/null
+docker compose down 2> /dev/null
