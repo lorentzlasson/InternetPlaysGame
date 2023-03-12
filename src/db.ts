@@ -1,4 +1,4 @@
-import { Kysely } from 'kysely';
+import { CamelCasePlugin, Kysely } from 'kysely';
 import { PostgresDialect } from 'kysely_postgres';
 import { DB } from './db.types.ts';
 
@@ -10,6 +10,9 @@ const db = new Kysely<DB>({
     port: Deno.env.get('POSTGRES_PORT'),
     password: Deno.env.get('POSTGRES_PASSWORD'),
   }),
+  plugins: [
+    new CamelCasePlugin(),
+  ],
 });
 
 export const init = async () => {

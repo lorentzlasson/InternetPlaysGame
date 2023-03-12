@@ -1,4 +1,4 @@
-import type { ColumnType } from "kysely";
+import type { ColumnType } from 'kysely';
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
@@ -8,7 +8,7 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Entity {
   id: Generated<number>;
-  game_id: number;
+  gameId: number;
   type: string;
   position: string;
 }
@@ -16,28 +16,28 @@ export interface Entity {
 export interface Game {
   id: Generated<number>;
   score: Generated<string>;
-  last_move_at: Timestamp | null;
-  high_score: Generated<string>;
+  lastMoveAt: Timestamp | null;
+  highScore: Generated<string>;
 }
 
 export interface Move {
   id: Generated<number>;
-  game_id: number;
+  gameId: number;
   direction: string;
   time: Generated<Timestamp>;
-  player_id: number;
+  playerId: number;
 }
 
 export interface MoveCandiate {
   id: Generated<number>;
-  game_id: number;
+  gameId: number;
   direction: string;
-  player_id: number;
+  playerId: number;
 }
 
 export interface Player {
   id: Generated<number>;
-  game_id: number;
+  gameId: number;
   name: string;
 }
 
@@ -45,6 +45,6 @@ export interface DB {
   entity: Entity;
   game: Game;
   move: Move;
-  move_candiate: MoveCandiate;
+  moveCandiate: MoveCandiate;
   player: Player;
 }
