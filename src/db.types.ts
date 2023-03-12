@@ -1,47 +1,43 @@
-import { ColumnType, RawBuilder } from 'kysely';
+import type { ColumnType } from "kysely";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
-export type Timestamp = ColumnType<
-  Date,
-  Date | string | RawBuilder,
-  Date | string | RawBuilder
->;
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Entity {
-  game_id: number;
   id: Generated<number>;
-  position: string;
+  game_id: number;
   type: string;
+  position: string;
 }
 
 export interface Game {
-  high_score: Generated<string>;
   id: Generated<number>;
-  last_move_at: Timestamp | null;
   score: Generated<string>;
+  last_move_at: Timestamp | null;
+  high_score: Generated<string>;
 }
 
 export interface Move {
-  direction: string;
-  game_id: number;
   id: Generated<number>;
-  player: string;
+  game_id: number;
+  direction: string;
   time: Generated<Timestamp>;
+  player_id: number;
 }
 
 export interface MoveCandiate {
-  direction: string;
-  game_id: number;
   id: Generated<number>;
-  player: string;
+  game_id: number;
+  direction: string;
+  player_id: number;
 }
 
 export interface Player {
-  game_id: number;
   id: Generated<number>;
+  game_id: number;
   name: string;
 }
 

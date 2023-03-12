@@ -61,13 +61,13 @@ create table move_candiate (
   id serial primary key,
   game_id integer not null references game,
   direction direction not null,
-  player player not null
+  player_id integer not null references player
 );
 
 create table move (
   id serial primary key,
   game_id integer not null references game,
   direction direction not null,
-  player player not null,
+  player_id integer not null references player,
   time timestamptz not null default now()
 );
