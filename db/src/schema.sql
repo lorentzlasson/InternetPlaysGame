@@ -15,11 +15,11 @@ create domain positive_number as integer not null check (
   value >= 0
 );
 
-create domain width as integer not null check (
+create domain x as integer not null check (
   value >= 0 and value <= 2
 );
 
-create domain height as integer not null check (
+create domain y as integer not null check (
   value >= 0 and value <= 2
 );
 
@@ -28,8 +28,8 @@ create domain movement_range as integer not null check (
 );
 
 create type position as (
-  width width,
-  height height
+  x x,
+  y y
 );
 
 create type movement as (
