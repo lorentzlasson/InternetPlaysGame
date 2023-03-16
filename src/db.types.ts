@@ -1,4 +1,5 @@
 import type { ColumnType } from 'kysely';
+import { EntityType } from './common.ts';
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
@@ -6,10 +7,14 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
+
+export type Direction = typeof DIRECTIONS[number];
+
 export interface Entity {
   id: Generated<number>;
   gameId: number;
-  type: string;
+  type: EntityType;
   position: string;
 }
 
@@ -23,7 +28,7 @@ export interface Game {
 export interface Move {
   id: Generated<number>;
   gameId: number;
-  direction: string;
+  direction: Direction;
   time: Generated<Timestamp>;
   playerId: number;
 }
@@ -31,7 +36,7 @@ export interface Move {
 export interface MoveCandiate {
   id: Generated<number>;
   gameId: number;
-  direction: string;
+  direction: Direction;
   playerId: number;
 }
 

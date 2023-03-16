@@ -20,6 +20,8 @@ type Bomb = BaseEntity & {
 
 export type Entity = Avatar | Coin | Bomb;
 
+export type EntityType = Extract<Entity, { __type: unknown }>['__type'];
+
 type Player = {
   name: string;
 };
@@ -91,15 +93,6 @@ export const MOVE_SELECTION_MILLIS =
 // deno-lint-ignore no-explicit-any
 export const isDirection = (token: any): token is Direction =>
   DIRECTIONS.includes(token);
-
-export const isCoin = (entity: Entity): entity is Coin =>
-  entity.__type === 'coin';
-
-export const isAvatar = (entity: Entity): entity is Avatar =>
-  entity.__type === 'avatar';
-
-export const isBomb = (entity: Entity): entity is Bomb =>
-  entity.__type === 'bomb';
 
 export const positionIsAllowed = ([x, y]: Position): boolean =>
   x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT;

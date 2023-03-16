@@ -2,7 +2,7 @@ import { CamelCasePlugin, Kysely } from 'kysely';
 import { PostgresDialect } from 'kysely_postgres';
 import { DB } from './db.types.ts';
 
-const db = new Kysely<DB>({
+export const db = new Kysely<DB>({
   dialect: new PostgresDialect({
     user: Deno.env.get('POSTGRES_USER'),
     database: Deno.env.get('POSTGRES_DB'),
@@ -15,18 +15,16 @@ const db = new Kysely<DB>({
   ],
 });
 
-export const init = async () => {
-  const existingGame = await db.selectFrom('game').select(['id'])
-    .executeTakeFirst();
-
-  if (existingGame) return existingGame;
-
-  // Setting score to 0 should not be necessary as it's the default value.
-  // Would ideally like to execute `insert into game default values`
-  // but haven't found a good way to do that
-  const newGame = await db.insertInto('game').values({ score: '0' })
-    .returning(['id']).executeTakeFirstOrThrow();
-  console.log('New game created');
-
-  return newGame;
+export const decodePosition = (p: string): [number, number] => {
+  const match = /\(([^)]+)\)/.exec(p);
+  if (!match) throw Error('fail to parse position');
+  const match2 = match[1];
+  const [x, y] = match2.split(',');
+  return [
+    parseInt(x),
+    parseInt(y),
+  ];
 };
+
+export const encodePosition = (p: [number, number]): string =>
+  `(${p.toString()})`;

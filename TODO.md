@@ -1,4 +1,8 @@
 - persist state
+  - fix typo candiate
+  - minimize game id
+    - point move to move candidate
+  - point game to move for last move
+
 - 24h
-- return result type from move execution
 - user mgmt

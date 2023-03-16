@@ -1,69 +1,110 @@
+import { sql } from 'kysely';
 import {
-  Direction,
-  Entity,
-  isAvatar,
-  isBomb,
-  isCoin,
+  EntityType,
   isSamePosition,
-  Move,
   MOVE_MOVEMENT_MAP,
   MOVE_SELECTION_MILLIS,
-  MoveCandidate,
   Position,
   positionIsAllowed,
   POSITIONS,
   State,
 } from './common.ts';
+import { db, decodePosition, encodePosition } from './db.ts';
+import { Direction } from './db.types.ts';
+
+// ---------- INIT  ----------
+const ENTITY_INIT = [
+  {
+    type: 'avatar',
+    position: [0, 2],
+  },
+  {
+    type: 'coin',
+    position: [2, 0],
+  },
+  {
+    type: 'bomb',
+    position: [0, 1],
+  },
+] as const;
 
 // ---------- STATE ----------
 
-const state: State = {
-  score: 0,
-  entities: [
-    {
-      __type: 'avatar',
-      position: [0, 2],
-    },
-    {
-      __type: 'coin',
-      position: [2, 0],
-    },
-    {
-      __type: 'bomb',
-      position: [0, 1],
-    },
-  ],
-  players: [],
-  moveCandidates: [],
-  moveHistory: [],
-  lastMoveAt: null,
-  highScore: 0,
-};
+// const state: State = {
+//   score: 0,
+//   entities: [
+//     {
+//       __type: 'avatar',
+//       position: [0, 2],
+//     },
+//     {
+//       __type: 'coin',
+//       position: [2, 0],
+//     },
+//     {
+//       __type: 'bomb',
+//       position: [0, 1],
+//     },
+//   ],
+//   players: [],
+//   moveCandidates: [],
+//   moveHistory: [],
+//   lastMoveAt: null,
+//   highScore: 0,
+// };
 
 // ---------- READS ----------
 
-const findPlayer = (playerName: string) =>
-  state.players.find((p) => p.name === playerName);
+const findPlayer = (gameId: number, playerName: string) =>
+  db
+    .selectFrom('player')
+    .where('gameId', '=', gameId)
+    .where('name', '=', playerName)
+    .selectAll()
+    .executeTakeFirst();
 
-const findMoveCandidate = (playerName: string) =>
-  state.moveCandidates.find(({ player: p }) => p.name === playerName);
+const findMoveCandidate = (gameId: number, playerId: number) =>
+  db
+    .selectFrom('moveCandiate')
+    .where('gameId', '=', gameId)
+    .where('playerId', '=', playerId)
+    .selectAll()
+    .executeTakeFirst();
 
-const findAvatar = () => {
-  const avatar = state.entities.find(isAvatar);
-  if (!avatar) throw new Error('avatar not found');
-  return avatar;
+const findAvatar = (gameId: number) => {
+  return db
+    .selectFrom('entity')
+    .where('gameId', '=', gameId)
+    .where('type', '=', 'avatar')
+    .selectAll()
+    .executeTakeFirstOrThrow();
 };
 
-const positionHasEntity = (
+const positionHasEntity = async (
+  gameId: number,
   pos: Position,
-  entityGuard: (entity: Entity) => boolean,
-): boolean =>
-  state.entities.some((e) => entityGuard(e) && isSamePosition(e.position, pos));
+  entityType: EntityType,
+): Promise<boolean> => {
+  const count = await db
+    .selectFrom('entity')
+    .where('type', '=', entityType)
+    .where('position', '=', sql`${encodePosition(pos)}::"position"`)
+    .where('gameId', '=', gameId)
+    .select(db.fn.countAll().as('count'))
+    .executeTakeFirstOrThrow();
+
+  return count.count === BigInt(1);
+};
 
 const randomCapped = (cap: number) => Math.floor(Math.random() * cap);
 
-const randomAvailablePosition = (): Position => {
-  const occupiedPositions = state.entities.map((e) => e.position);
+const randomAvailablePosition = async (gameId: number): Promise<Position> => {
+  const occupiedPositions = (await db
+    .selectFrom('entity')
+    .where('gameId', '=', gameId)
+    .select('position')
+    .execute()).map(({ position }) => decodePosition(position));
+
   const availablePositions = POSITIONS.filter(
     (pos) =>
       !occupiedPositions.some((occupiedPos) =>
@@ -74,133 +115,311 @@ const randomAvailablePosition = (): Position => {
   return availablePositions[randomIndex];
 };
 
-const randomMoveCandidate = () => {
-  const randomIndex = randomCapped(state.moveCandidates.length);
-  return state.moveCandidates[randomIndex];
-};
+const randomMoveCandidate = (gameId: number) =>
+  db
+    .selectFrom('moveCandiate')
+    .orderBy(sql`random()`)
+    .select(['gameId', 'playerId', 'direction'])
+    .where('gameId', '=', gameId)
+    .executeTakeFirstOrThrow();
 
-export const getState = () => state;
+export const getState = async (gameId: number): Promise<State> => {
+  const dbGame = await db
+    .selectFrom('game')
+    .where('id', '=', gameId)
+    .select(['score', 'highScore', 'lastMoveAt'])
+    .executeTakeFirstOrThrow();
 
-// ---------- MUTATIONS ----------
-
-const respawn = (entityGuard: (entity: Entity) => boolean) => {
-  const entity = state.entities.find(entityGuard);
-  if (!entity) throw new Error('entity not found');
-  entity.position = randomAvailablePosition();
-};
-
-const updateHighScore = (score: number) => {
-  if (score > state.highScore) {
-    state.highScore = score;
-  }
-};
-
-const collectCoin = () => {
-  state.score++;
-  updateHighScore(state.score);
-  respawn(isCoin);
-};
-
-const blowUpBomb = () => {
-  state.score = 0;
-  respawn(isBomb);
-};
-
-const clearMoveCandiates = () => {
-  state.moveCandidates = [];
-};
-
-const registerMove = (move: Move) => {
-  state.moveHistory.push(move);
-};
-
-const timestampLastMove = () => {
-  state.lastMoveAt = new Date().toJSON();
-};
-
-const createPlayer = (playerName: string) => {
-  const player = {
-    name: playerName,
-    moves: [],
+  const game = {
+    ...dbGame,
+    highScore: parseInt(dbGame.highScore),
+    score: parseInt(dbGame.score),
+    lastMoveAt: dbGame.lastMoveAt ? dbGame.lastMoveAt.toISOString() : null,
   };
-  state.players.push(player);
-  return player;
-};
 
-const ensurePlayer = (playerName: string) => {
-  const player = findPlayer(playerName);
-  if (!player) {
-    return createPlayer(playerName);
-  }
-  return player;
-};
+  const dbEntities = await db
+    .selectFrom('entity')
+    .where('gameId', '=', gameId)
+    .select(['type', 'position'])
+    .execute();
 
-const ensureMoveCandidate = (move: MoveCandidate) => {
-  const moveCandidate = findMoveCandidate(move.player.name);
-  if (!moveCandidate) {
-    return state.moveCandidates.push(move);
-  }
-  moveCandidate.direction = move.direction;
-  return moveCandidate;
-};
+  const entities = dbEntities.map(({ type, position }) => ({
+    __type: type,
+    position: decodePosition(position),
+  }));
 
-export const recordMove = (direction: Direction, playerName: string): State => {
-  const player = ensurePlayer(playerName);
+  const players = await db
+    .selectFrom('player')
+    .where('gameId', '=', gameId)
+    .select(['name'])
+    .execute();
 
-  ensureMoveCandidate({
-    player,
+  const dbMoveCandidates = await db
+    .selectFrom('moveCandiate')
+    .where('moveCandiate.gameId', '=', gameId)
+    .innerJoin('player', 'player.id', 'moveCandiate.playerId')
+    .select(['moveCandiate.direction', 'player.name'])
+    .execute();
+
+  const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
     direction,
-  });
+    player: {
+      name,
+    },
+  }));
 
-  console.log(`player ${player.name} move ${direction} is added to candidates`);
+  const dbMoveHistory = await db
+    .selectFrom('move')
+    .where('move.gameId', '=', gameId)
+    .innerJoin('player', 'player.id', 'move.playerId')
+    .select(['move.direction', 'move.time', 'player.name'])
+    .execute();
+
+  const moveHistory = dbMoveHistory.map(({ direction, time, name }) => ({
+    direction,
+    time: time.toISOString(),
+    player: {
+      name,
+    },
+  }));
+
+  const state = {
+    ...game,
+    entities,
+    players,
+    moveCandidates,
+    moveHistory,
+  };
 
   return state;
 };
 
-export const executeNextMove = (broadcast: (state: State) => void) => {
-  const moveCandidates = state.moveCandidates;
+// ---------- MUTATIONS ----------
+
+export const init = async () => {
+  const existingGame = await db.selectFrom('game').selectAll()
+    .executeTakeFirst();
+
+  if (existingGame) {
+    console.log('Resuming game', existingGame);
+    return existingGame.id;
+  }
+
+  // Setting score to 0 should not be necessary as it's the default value.
+  // Would ideally like to execute `insert into game default values`
+  // but haven't found a good way to do that
+  const newGame = await db.insertInto('game').values({ score: '0' })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  console.log('Stating new game', newGame);
+
+  const dbEntities = ENTITY_INIT.map((x) => ({
+    ...x,
+    gameId: newGame.id,
+    position: `(${x.position.toString()})`,
+  }));
+
+  await db
+    .deleteFrom('entity')
+    .where('gameId', '=', newGame.id)
+    .execute();
+
+  await db
+    .insertInto('entity')
+    .values(dbEntities)
+    .returningAll()
+    .execute();
+  return newGame.id;
+};
+
+const respawn = async (gameId: number, entityType: EntityType) => {
+  const newPos = await randomAvailablePosition(gameId);
+
+  return db
+    .updateTable('entity')
+    .set({ position: encodePosition(newPos) })
+    .where('gameId', '=', gameId)
+    .where('type', '=', entityType)
+    .executeTakeFirstOrThrow();
+};
+
+const collectCoin = async (gameId: number) => {
+  const x = await db
+    .selectFrom('game')
+    .where('id', '=', gameId)
+    .select(['score', 'highScore'])
+    .executeTakeFirstOrThrow();
+
+  const score = parseInt(x.score);
+  const highScore = parseInt(x.highScore);
+
+  const newScore = score + 1;
+
+  if (newScore > highScore) {
+    await db
+      .updateTable('game')
+      .set({ highScore: newScore.toString() })
+      .executeTakeFirstOrThrow();
+  }
+
+  await db
+    .updateTable('game')
+    .set({ score: newScore.toString() })
+    .executeTakeFirstOrThrow();
+
+  respawn(gameId, 'coin');
+};
+
+const blowUpBomb = async (gameId: number) => {
+  await db
+    .updateTable('game')
+    .set({ score: '0' })
+    .executeTakeFirstOrThrow();
+
+  respawn(gameId, 'bomb');
+};
+
+const clearMoveCandiates = (gameId: number) =>
+  db
+    .deleteFrom('moveCandiate')
+    .where('gameId', '=', gameId)
+    .executeTakeFirstOrThrow();
+
+const registerMove = (
+  move: { gameId: number; direction: Direction; playerId: number },
+) =>
+  db
+    .insertInto('move')
+    .values({
+      ...move,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+const timestampLastMove = (gameId: number) =>
+  db
+    .updateTable('game')
+    .set({ lastMoveAt: sql`now()` })
+    .where('id', '=', gameId)
+    .executeTakeFirstOrThrow();
+
+const createPlayer = (gameId: number, playerName: string) => {
+  return db
+    .insertInto('player')
+    .values({
+      name: playerName,
+      gameId,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+};
+
+const ensurePlayer = async (gameId: number, playerName: string) => {
+  const player = await findPlayer(gameId, playerName);
+  if (!player) {
+    return createPlayer(gameId, playerName);
+  }
+  return player;
+};
+
+const ensureMoveCandidate = async (
+  { gameId, direction, playerId }: {
+    gameId: number;
+    direction: Direction;
+    playerId: number;
+  },
+) => {
+  const moveCandidate = await findMoveCandidate(gameId, playerId);
+
+  if (!moveCandidate) {
+    return db
+      .insertInto('moveCandiate')
+      .values({
+        gameId,
+        direction,
+        playerId,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  }
+
+  return db
+    .updateTable('moveCandiate')
+    .set({ direction })
+    .where('gameId', '=', gameId)
+    .where('playerId', '=', playerId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+};
+
+export const recordMove = async (
+  gameId: number,
+  direction: Direction,
+  playerName: string,
+) => {
+  const player = await ensurePlayer(gameId, playerName);
+
+  ensureMoveCandidate({
+    gameId,
+    direction,
+    playerId: player.id,
+  });
+
+  console.log(`player ${player.name} move ${direction} is added to candidates`);
+
+  return getState(gameId);
+};
+
+export const executeNextMove = async (gameId: number) => {
+  const moveCandidates = await db
+    .selectFrom('moveCandiate')
+    .selectAll()
+    .where('gameId', '=', gameId)
+    .execute();
+
   console.log(`move candidates: ${moveCandidates.length}`);
 
   if (moveCandidates.length !== 0) {
-    const nextMove = randomMoveCandidate();
+    const nextMove = await randomMoveCandidate(gameId);
 
-    const avatar = findAvatar();
+    const avatar = await findAvatar(gameId);
 
-    const { direction, player } = nextMove;
+    const { direction, playerId } = nextMove;
 
-    const [x, y] = avatar.position;
+    const [x, y] = decodePosition(avatar.position);
     const [mX, mY] = MOVE_MOVEMENT_MAP[direction];
     const newPosition: Position = [x + mX, y + mY];
 
     if (positionIsAllowed(newPosition)) {
-      avatar.position = newPosition;
+      await db
+        .updateTable('entity')
+        .set({ position: encodePosition(newPosition) })
+        .where('type', '=', avatar.type)
+        .execute();
 
-      registerMove({
-        ...nextMove,
-        time: new Date().toJSON(),
-      });
+      await registerMove(nextMove);
 
-      if (positionHasEntity(newPosition, isCoin)) {
-        collectCoin();
+      if (await positionHasEntity(gameId, newPosition, 'coin')) {
+        await collectCoin(gameId);
       }
 
-      if (positionHasEntity(newPosition, isBomb)) {
-        blowUpBomb();
+      if (await positionHasEntity(gameId, newPosition, 'bomb')) {
+        await blowUpBomb(gameId);
       }
 
       console.log(
-        `player ${player.name} move ${direction} to ${newPosition} was executed`,
+        `player ${playerId} move ${direction} to ${newPosition} was executed`,
       );
     } else {
       console.log(
-        `player ${player.name} move ${direction} to ${newPosition} is not allowed`,
+        `player ${playerId} move ${direction} to ${newPosition} is not allowed`,
       );
     }
 
-    clearMoveCandiates();
+    await clearMoveCandiates(gameId);
   }
 
-  timestampLastMove();
-  broadcast(state);
-  setTimeout(() => executeNextMove(broadcast), MOVE_SELECTION_MILLIS);
+  await timestampLastMove(gameId);
+  setTimeout(() => executeNextMove(gameId), MOVE_SELECTION_MILLIS);
 };

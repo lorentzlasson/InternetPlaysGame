@@ -1,16 +1,14 @@
 import 'loadEnv';
 import { serve } from 'http_server';
-import { executeNextMove, getState, recordMove } from './game.ts';
+import { executeNextMove, getState, init, recordMove } from './game.ts';
 import { isDirection } from './common.ts';
 import ui from './ui/main.tsx';
-import * as db from './db.ts';
 
 const PORT = 8000;
 
-const game = await db.init();
-console.log(`Starting game ${game.id}`);
+const gameId = await init();
 
-executeNextMove(() => {});
+executeNextMove(gameId);
 
 await serve(
   async (req) => {
@@ -26,7 +24,7 @@ await serve(
         });
       }
 
-      const state = getState();
+      const state = await getState(gameId);
       const html = ui(state);
       return new Response(html, {
         headers: {
@@ -41,9 +39,9 @@ await serve(
       const direction = formData.get('direction');
       if (playerName) {
         if (isDirection(direction)) {
-          recordMove(direction, playerName.toString());
+          recordMove(gameId, direction, playerName.toString());
 
-          const state = getState();
+          const state = await getState(gameId);
           const html = ui(state);
 
           return new Response(html, {
