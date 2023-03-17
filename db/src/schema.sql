@@ -57,7 +57,7 @@ create table entity (
   position "position" not null
 );
 
-create table move_candiate (
+create table move_candidate (
   id serial primary key,
   game_id integer not null references game,
   direction direction not null,

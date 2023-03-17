@@ -33,7 +33,7 @@ export interface Move {
   playerId: number;
 }
 
-export interface MoveCandiate {
+export interface MoveCandidate {
   id: Generated<number>;
   gameId: number;
   direction: Direction;
@@ -50,6 +50,6 @@ export interface DB {
   entity: Entity;
   game: Game;
   move: Move;
-  moveCandiate: MoveCandiate;
+  moveCandidate: MoveCandidate;
   player: Player;
 }

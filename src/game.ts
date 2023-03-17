@@ -65,7 +65,7 @@ const findPlayer = (gameId: number, playerName: string) =>
 
 const findMoveCandidate = (gameId: number, playerId: number) =>
   db
-    .selectFrom('moveCandiate')
+    .selectFrom('moveCandidate')
     .where('gameId', '=', gameId)
     .where('playerId', '=', playerId)
     .selectAll()
@@ -117,7 +117,7 @@ const randomAvailablePosition = async (gameId: number): Promise<Position> => {
 
 const randomMoveCandidate = (gameId: number) =>
   db
-    .selectFrom('moveCandiate')
+    .selectFrom('moveCandidate')
     .orderBy(sql`random()`)
     .select(['gameId', 'playerId', 'direction'])
     .where('gameId', '=', gameId)
@@ -155,10 +155,10 @@ export const getState = async (gameId: number): Promise<State> => {
     .execute();
 
   const dbMoveCandidates = await db
-    .selectFrom('moveCandiate')
-    .where('moveCandiate.gameId', '=', gameId)
-    .innerJoin('player', 'player.id', 'moveCandiate.playerId')
-    .select(['moveCandiate.direction', 'player.name'])
+    .selectFrom('moveCandidate')
+    .where('moveCandidate.gameId', '=', gameId)
+    .innerJoin('player', 'player.id', 'moveCandidate.playerId')
+    .select(['moveCandidate.direction', 'player.name'])
     .execute();
 
   const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
@@ -282,7 +282,7 @@ const blowUpBomb = async (gameId: number) => {
 
 const clearMoveCandiates = (gameId: number) =>
   db
-    .deleteFrom('moveCandiate')
+    .deleteFrom('moveCandidate')
     .where('gameId', '=', gameId)
     .executeTakeFirstOrThrow();
 
@@ -334,7 +334,7 @@ const ensureMoveCandidate = async (
 
   if (!moveCandidate) {
     return db
-      .insertInto('moveCandiate')
+      .insertInto('moveCandidate')
       .values({
         gameId,
         direction,
@@ -345,7 +345,7 @@ const ensureMoveCandidate = async (
   }
 
   return db
-    .updateTable('moveCandiate')
+    .updateTable('moveCandidate')
     .set({ direction })
     .where('gameId', '=', gameId)
     .where('playerId', '=', playerId)
@@ -373,7 +373,7 @@ export const recordMove = async (
 
 export const executeNextMove = async (gameId: number) => {
   const moveCandidates = await db
-    .selectFrom('moveCandiate')
+    .selectFrom('moveCandidate')
     .selectAll()
     .where('gameId', '=', gameId)
     .execute();
