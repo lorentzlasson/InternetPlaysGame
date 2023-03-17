@@ -32,6 +32,7 @@ services:
     environment:
       POSTGRES_PASSWORD: foo
     volumes:
+      - pgdata:/var/lib/postgresql/data
       - ./db/src:/docker-entrypoint-initdb.d
 
   migration_generate:
@@ -68,3 +69,6 @@ services:
     volumes:
       - ./db/type_generate/run.sh:/app/run.sh
       - ./src:/app/output
+
+volumes:
+  pgdata:
