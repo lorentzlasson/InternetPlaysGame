@@ -39,7 +39,7 @@ const ui = (state: State) => (
                   isSamePosition(e.position, [x, y])
                 );
                 const emoji = entity
-                  ? EMOJI_MAP[entity.__type]
+                  ? EMOJI_MAP[entity.type]
                   : EMOJI_MAP.blank;
                 return (
                   <td>

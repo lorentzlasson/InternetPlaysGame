@@ -96,4 +96,4 @@ export default (page: Page) => ({
 });
 
 export const waitForMoveExecution = () =>
-  new Promise((resolve) => setTimeout(resolve, MOVE_SELECTION_MILLIS * 1.5));
+  new Promise((resolve) => setTimeout(resolve, MOVE_SELECTION_MILLIS));

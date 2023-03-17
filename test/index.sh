@@ -4,7 +4,7 @@ export COMPOSE_FILE=compose.yaml:compose.test.yaml
 
 # Used both by game server and test runner.
 # Increase if test gets flaky
-export MOVE_SELECTION_MILLIS=500
+export MOVE_SELECTION_MILLIS=700
 
 echo "# STARTING GAME SERVER IN CONTAINER"
 docker compose up --detach db
@@ -23,6 +23,6 @@ if [ -n "$DEBUG" ]; then
 fi
 
 echo "# KILL GAME SERVER"
-docker compose down 2> /dev/null
+docker compose down -v 2> /dev/null
 
 exit $exit_code

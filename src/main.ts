@@ -1,6 +1,6 @@
 import 'loadEnv';
 import { serve } from 'http_server';
-import { executeNextMove, getState, init, recordMove } from './game.ts';
+import { executeNextMove, getUiState, init, recordMove } from './game.ts';
 import { isDirection } from './common.ts';
 import ui from './ui/main.tsx';
 
@@ -24,7 +24,7 @@ await serve(
         });
       }
 
-      const state = await getState(gameId);
+      const state = await getUiState(gameId);
       const html = ui(state);
       return new Response(html, {
         headers: {
@@ -39,9 +39,9 @@ await serve(
       const direction = formData.get('direction');
       if (playerName) {
         if (isDirection(direction)) {
-          recordMove(gameId, direction, playerName.toString());
+          await recordMove(gameId, direction, playerName.toString());
 
-          const state = await getState(gameId);
+          const state = await getUiState(gameId);
           const html = ui(state);
 
           return new Response(html, {

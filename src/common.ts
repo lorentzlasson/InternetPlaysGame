@@ -7,20 +7,20 @@ type BaseEntity = {
 };
 
 type Avatar = BaseEntity & {
-  __type: 'avatar';
+  type: 'avatar';
 };
 
 type Coin = BaseEntity & {
-  __type: 'coin';
+  type: 'coin';
 };
 
 type Bomb = BaseEntity & {
-  __type: 'bomb';
+  type: 'bomb';
 };
 
 export type Entity = Avatar | Coin | Bomb;
 
-export type EntityType = Extract<Entity, { __type: unknown }>['__type'];
+export type EntityType = Extract<Entity, { type: unknown }>['type'];
 
 type Player = {
   name: string;

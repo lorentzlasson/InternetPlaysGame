@@ -93,9 +93,7 @@ Deno.test('smoke', async () => {
     // High score can vary between 1 and 3 due to randomness
     assertHighScoreWithin([1, 2, 3]),
 
-    // All ticks except the one attempting to go
-    // out of bounds
-    assertHistoryCount(7),
+    assertHistoryCount(8),
   ]);
 
   if (Deno.env.get('DEBUG')) await page.takeScreenshot('./test/screenshot');

@@ -40,7 +40,6 @@ create type movement as (
 create table game (
   id serial primary key,
   score positive_number not null default 0,
-  last_move_at timestamptz,
   high_score positive_number not null default 0 check (high_score >= score)
 );
 
@@ -59,15 +58,13 @@ create table entity (
 
 create table move_candidate (
   id serial primary key,
-  game_id integer not null references game,
   direction direction not null,
-  player_id integer not null references player
+  player_id integer not null references player,
+  time timestamptz not null default now()
 );
 
 create table move (
   id serial primary key,
-  game_id integer not null references game,
-  direction direction not null,
-  player_id integer not null references player,
+  move_candidate_id integer not null references move_candidate,
   time timestamptz not null default now()
 );
