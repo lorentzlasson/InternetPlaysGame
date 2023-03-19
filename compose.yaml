@@ -17,6 +17,7 @@ services:
       dockerfile: ./test/Dockerfile
     environment:
       GAME_HOST: game
+      DEBUG: $(DEBUG)
     profiles:
       - test
     volumes:
