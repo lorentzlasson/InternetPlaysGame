@@ -5,6 +5,7 @@ services:
       - "8000:8000"
     environment:
       POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - ./src:/app/src
       - ./deno.jsonc:/app/deno.jsonc
@@ -32,9 +33,13 @@ services:
       - 5432:5432
     environment:
       POSTGRES_PASSWORD: foo
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_TEST_DB: ${POSTGRES_TEST_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./db/src:/docker-entrypoint-initdb.d
+      - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./db/src/schema.sql:/schema.sql
+      - ./db/util:/util
 
   migration_generate:
     build: db/migration_generate
