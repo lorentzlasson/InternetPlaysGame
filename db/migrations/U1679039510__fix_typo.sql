@@ -1,5 +1,0 @@
-alter table move_candiate rename to move_candidate;
-alter sequence move_candiate_id_seq rename to move_candidate_id_seq;
-alter index move_candiate_pkey rename to move_candidate_pkey;
-alter table move_candidate rename constraint move_candiate_game_id_fkey to move_candidate_game_id_fkey;
-alter table move_candidate rename constraint move_candiate_player_id_fkey to move_candidate_player_id_fkey;
