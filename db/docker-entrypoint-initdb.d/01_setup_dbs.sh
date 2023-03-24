@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# All future databases will have this schema by default
-psql -d template1 -f schema.sql
+
+# To simplify db reset
+createdb --username=postgres my_template
+psql -d my_template -f schema.sql
 
 echo $POSTGRES_DB
 
