@@ -40,7 +40,8 @@ create type movement as (
 create table game (
   id serial primary key,
   score positive_number not null default 0,
-  high_score positive_number not null default 0 check (high_score >= score)
+  high_score positive_number not null default 0 check (high_score >= score),
+  started_at timestamptz not null default now()
 );
 
 create table player (

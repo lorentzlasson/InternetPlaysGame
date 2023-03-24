@@ -20,7 +20,7 @@ const DIRECTION_EMOJI_MAP: { [key in Direction]: string } = {
 
 const prettifyTime = (timeString: string) => {
   const time = new Date(timeString);
-  return time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds();
+  return time.toISOString()
 };
 
 const ui = (state: State) => (
@@ -64,7 +64,7 @@ const ui = (state: State) => (
       </div>
       <div>
         <div style={{ fontSize: '20px' }}>
-          <div>
+          <div id='lastMoveAt'>
             {state.lastMoveAt
               ? `Last move at ${prettifyTime(state.lastMoveAt)}`
               : ''}

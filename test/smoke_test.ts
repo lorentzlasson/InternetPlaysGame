@@ -1,10 +1,14 @@
 import { buildFor } from 'sinco';
-import gameNavigation, { waitForMoveExecution } from './gameNavigation.ts';
+import gameNavigation, {
+  awaitNextMove,
+  waitForMoveExecution,
+} from './gameNavigation.ts';
 
 Deno.test('smoke', async () => {
   const { browser, page } = await buildFor('chrome');
   const {
     loadPage,
+    getLastMoveAt,
     recordMoves,
     assertScore,
     assertHighScoreWithin,
@@ -15,12 +19,15 @@ Deno.test('smoke', async () => {
   await loadPage();
 
   // Verify initial state
-  await Promise.all([
+  const [lastKnownMoveAt] = await Promise.all([
+    getLastMoveAt(),
     assertEntityIsInPosition('🏃', [0, 2]),
     assertEntityIsInPosition('🪙', [2, 0]),
     assertEntityIsInPosition('💣', [0, 1]),
     assertScore(0),
   ]);
+
+  await awaitNextMove(lastKnownMoveAt);
 
   await recordMoves([
     { direction: 'right', name: 'alice' },

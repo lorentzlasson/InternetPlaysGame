@@ -18,6 +18,7 @@ export interface Game {
   id: Generated<number>;
   score: Generated<string>;
   highScore: Generated<string>;
+  startedAt: Generated<Timestamp>;
 }
 
 export interface Move {

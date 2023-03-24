@@ -93,7 +93,7 @@ const lastMoveAtQuery = db
         'game.id',
         db.fn.coalesce(
           db.fn.max('move.time'),
-          sql`'-infinity'::timestamp`,
+          'game.startedAt',
         ).as('time'),
       ]));
 
@@ -105,7 +105,11 @@ const freshCandidatesQuery = lastMoveAtQuery
       .innerJoin('game', 'game.id', 'player.gameId')
       .innerJoin('lastMovePerGame', 'lastMovePerGame.id', 'game.id')
       .whereRef('moveCandidate.time', '>', 'lastMovePerGame.time')
-      .select(['moveCandidate.id', 'game.id as gameId']));
+      .select([
+        'moveCandidate.id',
+        'game.id as gameId',
+        'player.name as playerName',
+      ]));
 
 const randomMoveCandidate = (gameId: number) =>
   freshCandidatesQuery
@@ -115,8 +119,8 @@ const randomMoveCandidate = (gameId: number) =>
     .select([
       'moveCandidate.id as moveCandidateId',
       'gameId',
-      'playerId',
       'direction',
+      'freshCandidates.playerName',
     ])
     .where('gameId', '=', gameId)
     .executeTakeFirst();
@@ -134,14 +138,11 @@ export const getUiState = async (gameId: number): Promise<State> => {
     .select('time')
     .executeTakeFirstOrThrow();
 
-  // time is -Infinity if no move has been made
-  const lastMoveAt = typeof time === 'number' ? null : time.toISOString();
-
   const game = {
     ...dbGame,
     highScore: parseInt(dbGame.highScore),
     score: parseInt(dbGame.score),
-    lastMoveAt,
+    lastMoveAt: time.toISOString(),
   };
 
   const dbEntities = await db
@@ -206,12 +207,21 @@ export const getUiState = async (gameId: number): Promise<State> => {
 // ---------- MUTATIONS ----------
 
 export const init = async () => {
-  const existingGame = await db.selectFrom('game').selectAll()
+  const gameExists = await db
+    .selectFrom('game')
+    .select('id')
     .executeTakeFirst();
 
-  if (existingGame) {
-    console.log('Resuming game', existingGame);
-    return existingGame.id;
+  if (gameExists) {
+    const existingGame = await db
+      .updateTable('game')
+      .set({ startedAt: sql`now()` })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+
+    console.log('game.resume', { existingGame });
+
+    return gameExists.id;
   }
 
   // Setting score to 0 should not be necessary as it's the default value.
@@ -221,7 +231,7 @@ export const init = async () => {
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  console.log('Stating new game', newGame);
+  console.log('game.new', { newGame });
 
   const dbEntities = ENTITY_INIT.map((x) => ({
     ...x,
@@ -334,9 +344,12 @@ export const recordMove = async (
 ) => {
   const player = await ensurePlayer(gameId, playerName);
 
-  insertMoveCandidate(direction, player.id);
+  await insertMoveCandidate(direction, player.id);
 
-  console.log(`player ${player.name} move ${direction} is added to candidates`);
+  console.log(
+    'moveCandidate.added',
+    { playerName, direction },
+  );
 };
 
 export const executeNextMove = async (gameId: number) => {
@@ -345,7 +358,7 @@ export const executeNextMove = async (gameId: number) => {
   if (nextMove) {
     const avatar = await findAvatar(gameId);
 
-    const { direction, playerId, moveCandidateId } = nextMove;
+    const { direction, playerName, moveCandidateId } = nextMove;
 
     const [x, y] = decodePosition(avatar.position);
     const [mX, mY] = MOVE_MOVEMENT_MAP[direction];
@@ -369,15 +382,17 @@ export const executeNextMove = async (gameId: number) => {
       }
 
       console.log(
-        `player ${playerId} move ${direction} to ${newPosition} was executed`,
+        'move.executed',
+        { playerName, direction, newPosition },
       );
     } else {
       console.log(
-        `player ${playerId} move ${direction} to ${newPosition} is not allowed`,
+        'move.notAllowed',
+        { playerName, direction, newPosition },
       );
     }
   } else {
-    console.log('no move candidates');
+    console.log('noMove.noCandidates');
   }
 
   setTimeout(() => executeNextMove(gameId), MOVE_SELECTION_MILLIS);

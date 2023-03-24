@@ -17,19 +17,16 @@ docker compose up --detach db
 sleep 1 # Not very robust
 
 # Clear database from data from previous run
-docker compose exec --env=DB=${POSTGRES_TEST_DB}  db bash -c "./util/reset_db.sh"
+docker compose exec --env=DB=${POSTGRES_TEST_DB} db bash -c "./util/reset_db.sh"
 
 POSTGRES_DB=${POSTGRES_TEST_DB} docker compose up --detach game
-
-echo "# WAIT FOR GAME SERVER TO START"
-sleep 1 # Not very robust
 
 echo "# RUN TEST"
 docker compose run --rm smoke_test
 exit_code=$?
 
 if [ -n "$DEBUG" ]; then
-  docker compose logs game
+  docker compose logs game --timestamps
 fi
 
 echo "# KILL GAME SERVER"
