@@ -5,7 +5,8 @@
     "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write",
 
     "console": "deno repl --eval-file=console.ts",
-    // Combining dev + test for convenience
+
+    // One stop shop to run smoke test
     "test:smoke": "./test/index.sh",
 
     // Requires MIGRATION_NAME to be set
