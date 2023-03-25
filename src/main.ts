@@ -41,13 +41,11 @@ await serve(
         if (isDirection(direction)) {
           await recordMove(gameId, direction, playerName.toString());
 
-          const state = await getUiState(gameId);
-          const html = ui(state);
-
-          return new Response(html, {
+          return new Response(null, {
             headers: {
-              'content-type': 'text/html',
+              'location': '/',
             },
+            status: 302,
           });
         }
       }
