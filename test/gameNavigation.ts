@@ -18,7 +18,7 @@ const EXEC_COMPENSATION = SERVER_WITH_TWO_CANDIDATES - TEST;
 
 type MoveAttempt = { name: string; direction: Direction };
 
-const GAME_HOST = Deno.env.get('GAME_HOST');
+const GAME_HOST = Deno.env.get('GAME_HOST') || 'localhost';
 
 const setName = async (page: Page, name: string) => {
   const inputName = await page.querySelector('input[type=text]');
