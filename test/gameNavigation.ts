@@ -18,7 +18,7 @@ const EXEC_COMPENSATION = SERVER_WITH_TWO_CANDIDATES - TEST;
 
 type MoveAttempt = { name: string; direction: Direction };
 
-const GAME_HOST = Deno.env.get('GAME_HOST') || 'localhost';
+const GAME_URL = Deno.env.get('GAME_URL') || 'http://localhost:8000';
 
 const setName = async (page: Page, name: string) => {
   const inputName = await page.querySelector('input[type=text]');
@@ -30,8 +30,7 @@ const recordMove = async (page: Page, direction: string) => {
   await btnRight.click();
 };
 
-const loadPage = (page: Page) => () =>
-  page.location(`http://${GAME_HOST}:8000`);
+const loadPage = (page: Page) => () => page.location(GAME_URL);
 
 const getLastMoveAt = (page: Page) => async () => {
   const lastMoveAtLabel: string | undefined = await page.evaluate(() => {

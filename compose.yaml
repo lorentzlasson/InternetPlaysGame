@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: ./test/Dockerfile
     environment:
-      GAME_HOST: game
+      GAME_URL: http://game:8000
       DEBUG: $(DEBUG)
     profiles:
       - test
