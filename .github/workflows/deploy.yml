@@ -25,17 +25,8 @@ jobs:
       - run: deno lint
       - run: deno task test:smoke
 
-  migrate_database:
-    needs: assure_quality
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - uses: actions/checkout@v3
-      - run: docker compose run --rm migration_run
-
   deploy:
-    needs: migrate_database
+    needs: assure_quality
     runs-on: ubuntu-latest
     permissions:
       id-token: write

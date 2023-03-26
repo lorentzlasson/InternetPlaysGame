@@ -10,9 +10,6 @@
     // One stop shop to run smoke test
     "test:smoke": "./test/index.sh",
 
-    // Requires MIGRATION_NAME to be set
-    "migration:generate": "UID_GID=\"$(id -u):$(id -g)\" docker compose run --rm migration_generate",
-    "migration:run": "docker compose run --rm migration_run",
     "dbtypes:generate": "UID_GID=\"$(id -u):$(id -g)\" docker compose run --rm dbtypes_generate"
   },
   "importMap": "import_map.json",

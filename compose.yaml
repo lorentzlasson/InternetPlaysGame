@@ -41,30 +41,6 @@ services:
       - ./db/src/schema.sql:/schema.sql
       - ./db/util:/util
 
-  migration_generate:
-    build: db/migration_generate
-    user: "${UID_GID}"
-    environment:
-      NAME: ${MIGRATION_NAME}
-      DATABASE_URL: ${DATABASE_URL}
-    profiles:
-      - tooling
-    volumes:
-      - ./db/migration_generate/tusker.toml:/app/tusker.toml
-      - ./db/migration_generate/run.sh:/app/run.sh
-      - ./db/migrations:/app/migrations
-      - ./db/src/:/app/src
-
-  migration_run:
-    build: db/migration_run
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-    profiles:
-      - tooling
-    volumes:
-      - ./db/migration_run/run.sh:/app/run.sh
-      - ./db/migrations:/app/migrations
-
   dbtypes_generate:
     build: db/type_generate
     user: "${UID_GID}"

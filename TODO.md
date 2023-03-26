@@ -1,3 +1,3 @@
-- 24h
+- sqlx
 - user mgmt
-- sqlx/atlas?
+- 24h
