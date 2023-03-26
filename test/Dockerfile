@@ -12,6 +12,6 @@ COPY test ./test
 COPY deno.jsonc .
 COPY import_map.json .
 
-RUN deno cache ./test/smoke_test.ts --import-map=import_map.json
+RUN deno cache ./test/smoke_test.ts
 
 CMD deno task test
