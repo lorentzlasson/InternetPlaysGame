@@ -20,7 +20,7 @@ const DIRECTION_EMOJI_MAP: { [key in Direction]: string } = {
 
 const prettifyTime = (timeString: string) => {
   const time = new Date(timeString);
-  return time.toISOString()
+  return time.toISOString();
 };
 
 const ui = (state: State) => (
@@ -38,9 +38,7 @@ const ui = (state: State) => (
                 const entity = state.entities.find((e) =>
                   isSamePosition(e.position, [x, y])
                 );
-                const emoji = entity
-                  ? EMOJI_MAP[entity.type]
-                  : EMOJI_MAP.blank;
+                const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
                 return (
                   <td>
                     {emoji}
