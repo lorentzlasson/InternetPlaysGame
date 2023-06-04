@@ -39,11 +39,11 @@ export type Move = {
 
 export type State = {
   score: number;
-  entities: Entity[];
-  players: Player[];
-  moveCandidates: MoveCandidate[];
-  moveHistory: Move[];
-  lastMoveAt: string | null;
+  entities: readonly Entity[];
+  players: readonly Player[];
+  moveCandidates: readonly MoveCandidate[];
+  moveHistory: readonly Move[];
+  lastMoveAt: string;
   highScore: number;
 };
 

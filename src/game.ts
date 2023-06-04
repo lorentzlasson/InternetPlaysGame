@@ -1,4 +1,4 @@
-import { sql } from 'kysely';
+import { sql } from 'npm:slonik';
 import {
   Direction,
   EntityType,
@@ -10,10 +10,10 @@ import {
   POSITIONS,
   State,
 } from './common.ts';
-import { db, decodePosition, encodePosition } from './db.ts';
+import { db, encodePosition, returning } from './db.ts';
 
 // ---------- INIT  ----------
-const ENTITY_INIT = [
+const _ENTITY_INIT = [
   {
     type: 'avatar',
     position: [0, 2],
@@ -31,45 +31,44 @@ const ENTITY_INIT = [
 // ---------- READS ----------
 
 const findPlayer = (gameId: number, playerName: string) =>
-  db
-    .selectFrom('player')
-    .where('gameId', '=', gameId)
-    .where('name', '=', playerName)
-    .selectAll()
-    .executeTakeFirst();
+  db.maybeOne(returning(['id', 'gameId', 'name'])`
+      select *
+      from player
+      where game_id = ${gameId}
+      and name = ${playerName}
+    `);
 
 const findAvatar = (gameId: number) =>
-  db
-    .selectFrom('entity')
-    .where('gameId', '=', gameId)
-    .where('type', '=', 'avatar')
-    .selectAll()
-    .executeTakeFirstOrThrow();
+  db.one(returning(['id', 'type', 'position'])`
+      select id, type, position
+      from entity
+      where game_id = ${gameId}
+      and type = 'avatar'
+    `);
 
-const positionHasEntity = async (
+const positionHasEntity = (
   gameId: number,
   pos: Position,
   entityType: EntityType,
-): Promise<boolean> => {
-  const { count } = await db
-    .selectFrom('entity')
-    .where('type', '=', entityType)
-    .where('position', '=', sql`${encodePosition(pos)}::"position"`)
-    .where('gameId', '=', gameId)
-    .select(db.fn.countAll<bigint>().as('count'))
-    .executeTakeFirstOrThrow();
-
-  return count === BigInt(1);
-};
+) =>
+  db.oneFirst(returning(['exists'])`
+    select exists(
+      select 1
+      from entity
+      where type = ${entityType}
+      and position = ${encodePosition(pos)}::"position"
+      and game_id = ${gameId}
+    )
+  `);
 
 const randomCapped = (cap: number) => Math.floor(Math.random() * cap);
 
 const randomAvailablePosition = async (gameId: number): Promise<Position> => {
-  const occupiedPositions = (await db
-    .selectFrom('entity')
-    .where('gameId', '=', gameId)
-    .select('position')
-    .execute()).map(({ position }) => decodePosition(position));
+  const occupiedPositions = await db.manyFirst(returning(['position'])`
+    select position
+    from entity
+    where game_id = ${gameId}
+  `);
 
   const availablePositions = POSITIONS.filter(
     (pos) =>
@@ -81,94 +80,85 @@ const randomAvailablePosition = async (gameId: number): Promise<Position> => {
   return availablePositions[randomIndex];
 };
 
-const lastMoveAtQuery = db
-  .with('lastMovePerGame', (d) =>
-    d
-      .selectFrom('game')
-      .leftJoin('player', 'player.gameId', 'game.id')
-      .leftJoin('moveCandidate', 'moveCandidate.playerId', 'player.id')
-      .leftJoin('move', 'moveCandidate.id', 'move.moveCandidateId')
-      .groupBy('game.id')
-      .select([
-        'game.id',
-        db.fn.coalesce(
-          db.fn.max('move.time'),
-          'game.startedAt',
-        ).as('time'),
-      ]));
+const lastMovePerGameQuery = sql.fragment`
+  select
+    game.id,
+    coalesce(max(move.time), game.started_at) as time
+  from game
+  left join player on player.game_id = game.id
+  left join move_candidate on move_candidate.player_id = player.id
+  left join move on move_candidate.id = move.move_candidate_id
+  group by game.id
+`;
 
-const freshCandidatesQuery = lastMoveAtQuery
-  .with('freshCandidates', (d) =>
-    d
-      .selectFrom('moveCandidate')
-      .innerJoin('player', 'player.id', 'moveCandidate.playerId')
-      .innerJoin('game', 'game.id', 'player.gameId')
-      .innerJoin('lastMovePerGame', 'lastMovePerGame.id', 'game.id')
-      .whereRef('moveCandidate.time', '>', 'lastMovePerGame.time')
-      .select([
-        'moveCandidate.id',
-        'game.id as gameId',
-        'player.name as playerName',
-      ]));
+const freshCandidatesQuery = sql.fragment`
+  with last_move_per_game as (${lastMovePerGameQuery})
+  select
+    move_candidate.id,
+    game.id as game_id,
+    player.name as player_name
+  from move_candidate
+  inner join player on player.id = move_candidate.player_id
+  inner join game on game.id = player.game_id
+  inner join last_move_per_game on last_move_per_game.id = game.id
+  where move_candidate.time > last_move_per_game.time
+`;
 
 const randomMoveCandidate = (gameId: number) =>
-  freshCandidatesQuery
-    .selectFrom('moveCandidate')
-    .innerJoin('freshCandidates', 'freshCandidates.id', 'moveCandidate.id')
-    .orderBy(sql`random()`)
-    .select([
-      'moveCandidate.id as moveCandidateId',
-      'gameId',
-      'direction',
-      'freshCandidates.playerName',
-    ])
-    .where('gameId', '=', gameId)
-    .executeTakeFirst();
+  db.maybeOne(returning(['direction', 'playerName', 'moveCandidateId'])`
+    with fresh_candidates as (${freshCandidatesQuery})
+    select move_candidate.id as move_candidate_id,
+           direction,
+           fresh_candidates.player_name
+    from move_candidate
+    inner join fresh_candidates on fresh_candidates.id = move_candidate.id
+    where game_id = ${gameId}
+    order by random()
+    limit 1
+`);
 
 export const getUiState = async (gameId: number): Promise<State> => {
-  const dbGame = await db
-    .selectFrom('game')
-    .where('id', '=', gameId)
-    .select(['score', 'highScore'])
-    .executeTakeFirstOrThrow();
+  const dbGame = await db.one(returning(['score', 'highScore'])`
+    select score, high_score
+    from game
+    where id = ${gameId}
+  `);
 
-  const { time } = await lastMoveAtQuery
-    .selectFrom('lastMovePerGame')
-    .where('lastMovePerGame.id', '=', gameId)
-    .select('time')
-    .executeTakeFirstOrThrow();
+  const time = await db.oneFirst(returning(['time'])`
+    with last_move_per_game as (${lastMovePerGameQuery})
+    select time
+    from last_move_per_game
+    where last_move_per_game.id = ${gameId}
+  `);
 
   const game = {
     ...dbGame,
-    highScore: parseInt(dbGame.highScore),
-    score: parseInt(dbGame.score),
+    highScore: dbGame.highScore,
+    score: dbGame.score,
     lastMoveAt: time.toISOString(),
   };
 
-  const dbEntities = await db
-    .selectFrom('entity')
-    .where('gameId', '=', gameId)
-    .select(['type', 'position'])
-    .execute();
+  const entities = await db.many(returning(['type', 'position'])`
+    select type, position
+    from entity
+    where game_id = ${gameId}
+  `);
 
-  const entities = dbEntities.map(({ type, position }) => ({
-    type,
-    position: decodePosition(position),
-  }));
+  const players = await db.any(returning(['name'])`
+    select name
+    from player
+    where game_id = ${gameId}
+  `);
 
-  const players = await db
-    .selectFrom('player')
-    .where('gameId', '=', gameId)
-    .select(['name'])
-    .execute();
-
-  const dbMoveCandidates = await freshCandidatesQuery
-    .selectFrom('moveCandidate')
-    .innerJoin('freshCandidates', 'freshCandidates.id', 'moveCandidate.id')
-    .innerJoin('player', 'player.id', 'moveCandidate.playerId')
-    .where('player.gameId', '=', gameId)
-    .select(['moveCandidate.direction', 'player.name'])
-    .execute();
+  const dbMoveCandidates = await db.any(returning(['name', 'direction'])`
+    with fresh_candidates as (${freshCandidatesQuery})
+    select move_candidate.direction,
+           player.name
+    from move_candidate
+    inner join fresh_candidates on fresh_candidates.id = move_candidate.id
+    inner join player on player.id = move_candidate.player_id
+    where fresh_candidates.game_id = ${gameId}
+  `);
 
   const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
     direction,
@@ -177,13 +167,13 @@ export const getUiState = async (gameId: number): Promise<State> => {
     },
   }));
 
-  const dbMoveHistory = await db
-    .selectFrom('move')
-    .innerJoin('moveCandidate', 'moveCandidate.id', 'move.moveCandidateId')
-    .innerJoin('player', 'player.id', 'moveCandidate.playerId')
-    .where('player.gameId', '=', gameId)
-    .select(['moveCandidate.direction', 'move.time', 'player.name'])
-    .execute();
+  const dbMoveHistory = await db.any(returning(['direction', 'time', 'name'])`
+    select mc.direction, m.time, p.name
+    from move m
+    inner join move_candidate mc on mc.id = m.move_candidate_id
+    inner join player p on p.id = mc.player_id
+    where p.game_id = ${gameId}
+  `);
 
   const moveHistory = dbMoveHistory.map(({ direction, time, name }) => ({
     direction,
@@ -207,120 +197,117 @@ export const getUiState = async (gameId: number): Promise<State> => {
 // ---------- MUTATIONS ----------
 
 export const init = async () => {
-  const gameExists = await db
-    .selectFrom('game')
-    .select('id')
-    .executeTakeFirst();
+  const existingGameId = await db.maybeOneFirst(returning(['id'])`
+    select id
+    from game
+  `);
 
-  if (gameExists) {
-    const existingGame = await db
-      .updateTable('game')
-      .set({ startedAt: sql`now()` })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+  if (existingGameId) {
+    const existingGame = await db.one(returning(['id'])`
+      update game
+      set started_at = now()
+      returning id
+    `);
 
     console.log('game.resume', { existingGame });
 
-    return gameExists.id;
+    return existingGameId;
   }
 
-  // Setting score to 0 should not be necessary as it's the default value.
-  // Would ideally like to execute `insert into game default values`
-  // but `default values` is not supported by kysely
-  const newGame = await db.insertInto('game').values({ score: '0' })
-    .returningAll()
-    .executeTakeFirstOrThrow();
+  const newGameId = await db.oneFirst(returning(['id'])`
+    insert into game
+    default values
+    returning id
+  `);
 
-  console.log('game.new', { newGame });
+  console.log('game.new', { newGameId });
 
-  const dbEntities = ENTITY_INIT.map((x) => ({
-    ...x,
-    gameId: newGame.id,
-    position: `(${x.position.toString()})`,
-  }));
+  await db.any(returning([])`
+    delete from entity
+    where game_id = ${newGameId}
+  `);
 
-  await db
-    .deleteFrom('entity')
-    .where('gameId', '=', newGame.id)
-    .execute();
+  // TODO: Base on ENTITY_INIT instead
+  await db.any(returning([])`
+    insert into entity (type, position, game_id)
+    values
+      ('avatar', '(0,2)', ${newGameId}),
+      ('coin', '(2,0)', ${newGameId}),
+      ('bomb', '(0,1)', ${newGameId})
+  `);
 
-  await db
-    .insertInto('entity')
-    .values(dbEntities)
-    .returningAll()
-    .execute();
-  return newGame.id;
+  return newGameId;
 };
 
 const respawn = async (gameId: number, entityType: EntityType) => {
   const newPos = await randomAvailablePosition(gameId);
 
-  return db
-    .updateTable('entity')
-    .set({ position: encodePosition(newPos) })
-    .where('gameId', '=', gameId)
-    .where('type', '=', entityType)
-    .executeTakeFirstOrThrow();
+  return db.any(returning([])`
+    update entity
+    set position = ${encodePosition(newPos)}
+    where type = ${entityType}
+    and game_id = ${gameId}
+  `);
 };
 
 const collectCoin = async (gameId: number) => {
-  const scores = await db
-    .selectFrom('game')
-    .where('id', '=', gameId)
-    .select(['score', 'highScore'])
-    .executeTakeFirstOrThrow();
+  const scores = await db.one(returning(['score', 'highScore'])`
+    select score, high_score
+    from game
+    where id = ${gameId}
+  `);
 
-  const score = parseInt(scores.score);
-  const highScore = parseInt(scores.highScore);
+  const score = scores.score;
+  const highScore = scores.highScore;
 
   const newScore = score + 1;
 
   if (newScore > highScore) {
-    await db
-      .updateTable('game')
-      .set({ highScore: newScore.toString() })
-      .executeTakeFirstOrThrow();
+    await db.any(returning([])`
+      update game
+      set high_score = ${newScore}
+      where id = ${gameId}
+    `);
   }
 
-  await db
-    .updateTable('game')
-    .set({ score: newScore.toString() })
-    .executeTakeFirstOrThrow();
+  await db.any(returning([])`
+    update game
+    set score = ${newScore}
+    where id = ${gameId}
+  `);
 
   respawn(gameId, 'coin');
 };
 
 const blowUpBomb = async (gameId: number) => {
-  await db
-    .updateTable('game')
-    .set({ score: '0' })
-    .executeTakeFirstOrThrow();
+  await db.any(returning([])`
+    update game
+    set score = 0
+    where id = ${gameId}
+  `);
 
   respawn(gameId, 'bomb');
 };
 
 const registerMove = (moveCandidateId: number) =>
-  db
-    .insertInto('move')
-    .values({
-      moveCandidateId,
-    })
-    .returningAll()
-    .executeTakeFirstOrThrow();
+  db.any(returning([])`
+    insert into move (move_candidate_id)
+    values (${moveCandidateId})
+  `);
 
 const createPlayer = (gameId: number, playerName: string) => {
-  return db
-    .insertInto('player')
-    .values({
-      name: playerName,
-      gameId,
-    })
-    .returningAll()
-    .executeTakeFirstOrThrow();
+  return db.one(
+    returning(['id', 'gameId', 'name'])`
+    insert into player (name, game_id)
+    values (${playerName}, ${gameId})
+    returning *
+  `,
+  );
 };
 
 const ensurePlayer = async (gameId: number, playerName: string) => {
   const player = await findPlayer(gameId, playerName);
+
   if (!player) {
     return createPlayer(gameId, playerName);
   }
@@ -328,14 +315,10 @@ const ensurePlayer = async (gameId: number, playerName: string) => {
 };
 
 const insertMoveCandidate = (direction: Direction, playerId: number) =>
-  db
-    .insertInto('moveCandidate')
-    .values({
-      direction,
-      playerId,
-    })
-    .returningAll()
-    .executeTakeFirstOrThrow();
+  db.any(returning([])`
+    insert into move_candidate (direction, player_id)
+    values (${direction}, ${playerId})
+  `);
 
 export const recordMove = async (
   gameId: number,
@@ -346,10 +329,7 @@ export const recordMove = async (
 
   await insertMoveCandidate(direction, player.id);
 
-  console.log(
-    'moveCandidate.added',
-    { playerName, direction },
-  );
+  console.log('moveCandidate.added', { playerName, direction });
 };
 
 export const executeNextMove = async (gameId: number) => {
@@ -360,18 +340,20 @@ export const executeNextMove = async (gameId: number) => {
 
     const { direction, playerName, moveCandidateId } = nextMove;
 
-    const [x, y] = decodePosition(avatar.position);
+    const [x, y] = avatar.position;
     const [mX, mY] = MOVE_MOVEMENT_MAP[direction];
     const newPosition: Position = [x + mX, y + mY];
 
     await registerMove(moveCandidateId);
 
     if (positionIsAllowed(newPosition)) {
-      await db
-        .updateTable('entity')
-        .set({ position: encodePosition(newPosition) })
-        .where('type', '=', avatar.type)
-        .execute();
+      await db.any(
+        returning([])`
+          update entity
+          set position = ${encodePosition(newPosition)}
+          where type = ${avatar.type}
+          `,
+      );
 
       if (await positionHasEntity(gameId, newPosition, 'coin')) {
         await collectCoin(gameId);
@@ -381,15 +363,9 @@ export const executeNextMove = async (gameId: number) => {
         await blowUpBomb(gameId);
       }
 
-      console.log(
-        'move.executed',
-        { playerName, direction, newPosition },
-      );
+      console.log('move.executed', { playerName, direction, newPosition });
     } else {
-      console.log(
-        'move.notAllowed',
-        { playerName, direction, newPosition },
-      );
+      console.log('move.notAllowed', { playerName, direction, newPosition });
     }
   } else {
     console.log('noMove.noCandidates');

@@ -1,5 +1,5 @@
 import 'loadEnv';
-import { sql } from 'kysely';
+import { sql } from 'npm:slonik';
 import { db } from './src/db.ts';
 
 // Run `deno task console`

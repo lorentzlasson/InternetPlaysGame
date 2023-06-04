@@ -43,7 +43,7 @@ await serve(
 
           return new Response(null, {
             headers: {
-              'location': '/',
+              location: '/',
             },
             status: 302,
           });

@@ -1,3 +1,2 @@
-- sqlx
 - user mgmt
 - 24h

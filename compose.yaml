@@ -41,16 +41,5 @@ services:
       - ./db/src/schema.sql:/schema.sql
       - ./db/util:/util
 
-  dbtypes_generate:
-    build: db/type_generate
-    user: "${UID_GID}"
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-    profiles:
-      - tooling
-    volumes:
-      - ./db/type_generate/run.sh:/app/run.sh
-      - ./src:/app/output
-
 volumes:
   pgdata:
