@@ -1,4 +1,3 @@
-import 'loadEnv';
 import { serve } from 'http_server';
 import { executeNextMove, getUiState, init, recordMove } from './game.ts';
 import { isDirection } from './common.ts';
