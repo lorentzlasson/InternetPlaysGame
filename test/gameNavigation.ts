@@ -10,7 +10,7 @@ import {
 
 // Avg execution times in ms
 const SERVER_IDLE = 5;
-const SERVER_WITH_TWO_CANDIDATES = 130;
+const SERVER_WITH_TWO_CANDIDATES = 100;
 const TEST = 140;
 
 const SERVER_AVG_MOVE_MILLIS_IDLE = MOVE_SELECTION_MILLIS + SERVER_IDLE;

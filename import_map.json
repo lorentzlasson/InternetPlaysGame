@@ -5,6 +5,8 @@
     "http_server": "https://deno.land/std@0.160.0/http/server.ts",
     "sinco": "https://deno.land/x/sinco@v4.1.0/mod.ts",
     "sincoPage": "https://deno.land/x/sinco@v4.1.0/src/page.ts",
-    "asserts": "https://deno.land/std@0.160.0/testing/asserts.ts"
+    "asserts": "https://deno.land/std@0.160.0/testing/asserts.ts",
+    "postgres": "https://deno.land/x/postgresjs@v3.3.5/mod.js",
+    "zod": "https://deno.land/x/zod@v3.21.4/mod.ts"
   }
 }

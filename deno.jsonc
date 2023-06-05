@@ -5,7 +5,7 @@
     "dev": "deno run --allow-net --allow-read --allow-env --watch src/main.ts",
     "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write",
 
-    "console": "deno repl --eval-file=console.ts",
+    "console": "deno repl --allow-all --eval-file=console.ts",
 
     // One stop shop to run smoke test
     "test:smoke": "./test/index.sh",

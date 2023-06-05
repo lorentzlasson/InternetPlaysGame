@@ -1,4 +1,4 @@
 import 'loadEnv';
-import { z } from 'npm:zod';
+import { z } from 'zod';
 
 export const dbUrl = z.string().parse(Deno.env.get('DB_URL'));

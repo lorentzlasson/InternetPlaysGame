@@ -1,6 +1,13 @@
 import 'loadEnv';
-import { sql } from 'npm:slonik';
-import { db } from './src/db.ts';
+
+// Used by console
+// deno-lint-ignore no-unused-vars
+import { sql } from './src/db.ts';
 
 // Run `deno task console`
-console.log('Running console', { sql, db });
+console.log(`
+Console running.
+
+Example:
+  await sql\`select count(*) from move\`
+`);
