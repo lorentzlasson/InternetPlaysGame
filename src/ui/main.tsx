@@ -80,7 +80,7 @@ const ui = (state: State) => (
             display: 'flex',
           }}
         >
-          <form method='POST'>
+          <form method='POST' action='/move'>
             <input
               type='text'
               placeholder='player name'

@@ -24,7 +24,7 @@ router
     context.response.body = html;
     context.response.type = 'text/html';
   })
-  .post('/', async (context) => {
+  .post('/move', async (context) => {
     const body = context.request.body();
     const formData = await body.value;
     const playerName = formData.get('playerName');
