@@ -49,7 +49,7 @@ const ui = (state: State) => (
           ))}
         </table>
         <table>
-          {state.moveHistory.reverse().map(
+          {state.moveHistory.slice(0).reverse().map(
             ({ player: { name }, direction, time }) => (
               <tr>
                 <td>{prettifyTime(time)}</td>
@@ -81,16 +81,6 @@ const ui = (state: State) => (
           }}
         >
           <form method='POST' action='/move'>
-            <input
-              type='text'
-              placeholder='player name'
-              style={{ fontSize: 'inherit' }}
-              name='playerName'
-              required
-              autoFocus
-            >
-            </input>
-
             <div
               style={{
                 display: 'flex',
