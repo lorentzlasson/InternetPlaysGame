@@ -77,7 +77,7 @@ router
         typeof oauthPayload.sub === 'string')
     ) {
       ctx.response.status = 500;
-      return;
+      throw new Error('sub not in google payload');
     }
 
     const header: Header = { alg: 'HS512', typ: 'JWT' };
@@ -109,7 +109,7 @@ router
 
     if (!sub) {
       ctx.response.status = 500;
-      return;
+      throw new Error('sub not in jwy payload');
     }
 
     const body = ctx.request.body();
