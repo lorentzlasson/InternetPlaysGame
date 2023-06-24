@@ -1,4 +1,4 @@
-import { serve } from 'http_server';
+import { Application, Router } from 'https://deno.land/x/oak@v12.5.0/mod.ts';
 import { executeNextMove, getUiState, init, recordMove } from './game.ts';
 import { isDirection } from './common.ts';
 import ui from './ui/main.tsx';
@@ -9,50 +9,40 @@ const gameId = await init();
 
 executeNextMove(gameId);
 
-await serve(
-  async (req) => {
-    if (req.method === 'GET') {
-      const { pathname } = new URL(req.url);
+const router = new Router();
 
-      if (pathname.startsWith('/favicon.ico')) {
-        const file = await Deno.open('./src/ui/gamepad.svg');
-        return new Response(file.readable, {
-          headers: {
-            'content-type': 'image/svg+xml',
-          },
-        });
-      }
+router
+  .get('/favicon.ico', async (context) => {
+    const faviconPath = `./src/ui/gamepad.svg`;
+    const faviconContent = await Deno.readFile(faviconPath);
+    context.response.body = faviconContent;
+    context.response.type = 'image/svg+xml';
+  })
+  .get('/', async (context) => {
+    const state = await getUiState(gameId);
+    const html = ui(state);
+    context.response.body = html;
+    context.response.type = 'text/html';
+  })
+  .post('/', async (context) => {
+    const body = context.request.body();
+    const formData = await body.value;
+    const playerName = formData.get('playerName');
+    const direction = formData.get('direction');
 
-      const state = await getUiState(gameId);
-      const html = ui(state);
-      return new Response(html, {
-        headers: {
-          'content-type': 'text/html',
-        },
-      });
+    if (playerName && isDirection(direction)) {
+      await recordMove(gameId, direction, playerName.toString());
+
+      context.response.status = 302;
+      context.response.headers.set('Location', '/');
+    } else {
+      context.response.status = 400;
     }
+  });
 
-    if (req.method === 'POST') {
-      const formData = await req.formData();
-      const playerName = formData.get('playerName');
-      const direction = formData.get('direction');
-      if (playerName) {
-        if (isDirection(direction)) {
-          await recordMove(gameId, direction, playerName.toString());
+const app = new Application();
 
-          return new Response(null, {
-            headers: {
-              location: '/',
-            },
-            status: 302,
-          });
-        }
-      }
+app.use(router.routes());
+app.use(router.allowedMethods());
 
-      return new Response(null, { status: 400 });
-    }
-
-    return new Response(null, { status: 405 });
-  },
-  { port: PORT },
-);
+app.listen({ port: PORT });
