@@ -1,2 +1,2 @@
-- user mgmt
+- patch smoke test
 - 24h
