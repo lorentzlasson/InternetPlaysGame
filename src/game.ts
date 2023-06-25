@@ -7,7 +7,8 @@ import {
   Position,
   positionIsAllowed,
   POSITIONS,
-  State,
+  StatsUiState,
+  UiState,
 } from './common.ts';
 import { sql } from './db.ts';
 
@@ -147,7 +148,7 @@ const randomMoveCandidate = async (gameId: number) => {
 export const getUiState = async (
   gameId: number,
   playerName: string | undefined,
-): Promise<State> => {
+): Promise<UiState> => {
   const [dbGame] = await sql<{ score: number; highScore: number }[]>`
     select score, high_score
     from game
@@ -174,15 +175,52 @@ export const getUiState = async (
     where game_id = ${gameId}
   `;
 
+  const signedInMoveCandidates = playerName
+    ? await getPlayerMoveCandidate(gameId, playerName)
+    : [];
+
+  const state = {
+    ...game,
+    entities,
+    signedInMoveCandidates,
+  };
+
+  return state;
+};
+
+export const getStatsUiState = async (
+  gameId: number,
+): Promise<StatsUiState> => {
+  const [dbGame] = await sql<{ score: number; highScore: number }[]>`
+    select score, high_score
+    from game
+    where id = ${gameId}
+  `;
+
+  const [{ time }] = await sql<{ time: Date }[]>`
+    with last_move_per_game as (${lastMovePerGameQuery})
+    select time
+    from last_move_per_game
+    where last_move_per_game.id = ${gameId}
+  `;
+
+  const game = {
+    ...dbGame,
+    highScore: dbGame.highScore,
+    score: dbGame.score,
+    lastMoveAt: time.toISOString(),
+  };
+
+  const entities = await sql<{ type: EntityType; position: Position }[]>`
+    select type, position
+    from entity
+    where game_id = ${gameId}
+  `;
   const players = await sql<{ name: string }[]>`
     select name
     from player
     where game_id = ${gameId}
   `;
-
-  const moveCandidates = playerName
-    ? await getPlayerMoveCandidate(gameId, playerName)
-    : [];
 
   const dbMoveHistory = await sql<
     { direction: Direction; time: Date; name: string }[]
@@ -193,6 +231,23 @@ export const getUiState = async (
     inner join player p on p.id = mc.player_id
     where p.game_id = ${gameId}
   `;
+
+  const dbMoveCandidates = await sql<{ name: string; direction: Direction }[]>`
+    with fresh_candidates as (${freshCandidatesQuery})
+    select move_candidate.direction,
+           player.name
+    from move_candidate
+    inner join fresh_candidates on fresh_candidates.id = move_candidate.id
+    inner join player on player.id = move_candidate.player_id
+    where fresh_candidates.game_id = ${gameId}
+  `;
+
+  const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
+    direction,
+    player: {
+      name,
+    },
+  }));
 
   const moveHistory = dbMoveHistory.map(({ direction, time, name }) => ({
     direction,
@@ -229,8 +284,7 @@ const hasFreshMoveCandidate = async (playerName: string) => {
 const getPlayerMoveCandidate = async (gameId: number, playerName: string) => {
   const dbMoveCandidates = await sql<{ name: string; direction: Direction }[]>`
     with fresh_candidates as (${freshCandidatesQuery})
-    select move_candidate.direction,
-           player.name
+    select move_candidate.direction
     from move_candidate
     inner join fresh_candidates on fresh_candidates.id = move_candidate.id
     inner join player on player.id = move_candidate.player_id

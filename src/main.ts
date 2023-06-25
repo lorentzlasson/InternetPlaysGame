@@ -6,7 +6,13 @@ import {
   Payload,
   verify,
 } from 'https://deno.land/x/djwt@v2.9/mod.ts';
-import { executeNextMove, getUiState, init, recordMove } from './game.ts';
+import {
+  executeNextMove,
+  getStatsUiState,
+  getUiState,
+  init,
+  recordMove,
+} from './game.ts';
 import { isDirection } from './common.ts';
 import {
   googleClientId,
@@ -16,6 +22,7 @@ import {
   secureCookie,
 } from './config.ts';
 import ui from './ui/main.tsx';
+import statsUi from './ui/stats.tsx';
 
 const PORT = 8000;
 
@@ -56,6 +63,12 @@ router
 
     const state = await getUiState(gameId, playerName);
     const html = ui(state);
+    ctx.response.body = html;
+    ctx.response.type = 'text/html';
+  })
+  .get('/stats', async (ctx) => {
+    const state = await getStatsUiState(gameId);
+    const html = statsUi(state);
     ctx.response.body = html;
     ctx.response.type = 'text/html';
   })

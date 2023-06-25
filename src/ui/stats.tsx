@@ -7,7 +7,7 @@ import {
   HEIGHT,
   isSamePosition,
   range,
-  UiState,
+  StatsUiState,
   WIDTH,
 } from '../common.ts';
 
@@ -26,7 +26,11 @@ const prettifyTime = (timeString: string) => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
-const ui = (state: UiState) => (
+const prettifyName = (name: string) => {
+  return name.slice(-4);
+};
+
+const ui = (state: StatsUiState) => (
   <html>
     <head>
       <title>Internet Plays Game</title>
@@ -72,36 +76,35 @@ const ui = (state: UiState) => (
           </tr>
         ))}
       </table>
-      <form method='POST' action='/move'>
-        <div>
-          {Object.entries(DIRECTION_EMOJI_MAP).map(([direction, emoji]) => {
-            return (
-              <button
-                value={direction}
-                type='submit'
-                style={{
-                  padding: 0,
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '18.75vw',
-                }}
-                name='direction'
-              >
-                {emoji}
-              </button>
-            );
-          })}
-        </div>
-      </form>
       <div style={{ fontSize: '5vw' }}>
-        {state.signedInMoveCandidates.map(({ direction }) => (
+        {state.moveCandidates.map(({ player: { name }, direction }) => (
           <div>
-            {`You want to move ${DIRECTION_EMOJI_MAP[direction]}`}
+            {`${prettifyName(name)} wants to move ${
+              DIRECTION_EMOJI_MAP[direction]
+            }`}
           </div>
         ))}
       </div>
+
+      <ul style={{ fontSize: '5vw' }}>
+        {state.players
+          .map(({ name }) => <li>{prettifyName(name)}</li>)}
+      </ul>
+
+      <table style={{ fontSize: '5vw' }}>
+        {state.moveHistory
+          .slice(0)
+          .reverse()
+          .map(({ player: { name }, direction, time }) => (
+            <tr>
+              <td>{prettifyTime(time)}</td>
+              <td>{prettifyName(name)}</td>
+              <td>{DIRECTION_EMOJI_MAP[direction]}</td>
+            </tr>
+          ))}
+      </table>
     </body>
   </html>
 );
 
-export default (state: UiState) => renderSSR(() => ui(state));
+export default (state: StatsUiState) => renderSSR(() => ui(state));

@@ -37,14 +37,24 @@ export type Move = {
   time: string;
 };
 
-export type State = {
+export type UiState = {
   score: number;
+  highScore: number;
+  lastMoveAt: string;
   entities: readonly Entity[];
-  players: readonly Player[];
+
+  signedInMoveCandidates: readonly MoveCandidate[];
+};
+
+export type StatsUiState = {
+  score: number;
+  highScore: number;
+  lastMoveAt: string;
+  entities: readonly Entity[];
+
   moveCandidates: readonly MoveCandidate[];
   moveHistory: readonly Move[];
-  lastMoveAt: string;
-  highScore: number;
+  players: readonly Player[];
 };
 
 const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
