@@ -19,8 +19,15 @@ const DIRECTION_EMOJI_MAP: { [key in Direction]: string } = {
 };
 
 const prettifyTime = (timeString: string) => {
-  const time = new Date(timeString);
-  return time.toISOString();
+  const date = new Date(timeString);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+};
+
+const prettifyName = (name: string) => {
+  return name.slice(-4);
 };
 
 const ui = (state: State) => (
@@ -28,45 +35,15 @@ const ui = (state: State) => (
     <head>
       <title>Internet Plays Game</title>
       <meta charSet='UTF-8'></meta>
+      <meta
+        name='viewport'
+        content='width=device-width, initial-scale=1.0'
+      >
+      </meta>
     </head>
-    <body style={{ display: 'flex', overflow: 'hidden' }}>
-      <div>
-        <table style={{ fontSize: '100px' }}>
-          {range(HEIGHT).map((y) => (
-            <tr>
-              {range(WIDTH).map((x) => {
-                const entity = state.entities.find((e) =>
-                  isSamePosition(e.position, [x, y])
-                );
-                const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
-                return (
-                  <td>
-                    {emoji}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </table>
-        <table>
-          {state.moveHistory.slice(0).reverse().map(
-            ({ player: { name }, direction, time }) => (
-              <tr>
-                <td>{prettifyTime(time)}</td>
-                <td>{name}</td>
-                <td>{DIRECTION_EMOJI_MAP[direction]}</td>
-              </tr>
-            ),
-          )}
-        </table>
-      </div>
-      <div>
-        <div style={{ fontSize: '20px' }}>
-          <div id='lastMoveAt'>
-            {state.lastMoveAt
-              ? `Last move at ${prettifyTime(state.lastMoveAt)}`
-              : ''}
-          </div>
+    <body>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex' }}>
           <div style={{ display: 'flex' }}>
             🪙<div id='score'>{state.score}</div>
           </div>
@@ -74,47 +51,68 @@ const ui = (state: State) => (
             🥇<div id='highScore'>{state.highScore}</div>
           </div>
         </div>
-
-        <div
-          style={{
-            display: 'flex',
-          }}
-        >
-          <form method='POST' action='/move'>
-            <div
-              style={{
-                display: 'flex',
-              }}
-            >
-              {Object.entries(DIRECTION_EMOJI_MAP).map(([direction, emoji]) => {
-                return (
-                  <button
-                    value={direction}
-                    type='submit'
-                    style={{
-                      flex: 1,
-                      padding: 0,
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '43px',
-                    }}
-                    name='direction'
-                  >
-                    {emoji}
-                  </button>
-                );
-              })}
-            </div>
-          </form>
-        </div>
-        <div style={{ borderTop: 'solid' }}>
-          {state.moveCandidates.map(({ player: { name }, direction }) => (
-            <div>
-              {`${name} wants to move ${DIRECTION_EMOJI_MAP[direction]}`}
-            </div>
-          ))}
+        <div id='lastMoveAt'>
+          {state.lastMoveAt
+            ? `Last move at ${prettifyTime(state.lastMoveAt)}`
+            : ''}
         </div>
       </div>
+      <table style={{ fontSize: '25vw', borderTop: 'solid' }}>
+        {range(HEIGHT).map((y) => (
+          <tr>
+            {range(WIDTH).map((x) => {
+              const entity = state.entities.find((e) =>
+                isSamePosition(e.position, [x, y])
+              );
+              const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
+              return <td>{emoji}</td>;
+            })}
+          </tr>
+        ))}
+      </table>
+      <form style={{ borderTop: 'solid' }} method='POST' action='/move'>
+        <div>
+          {Object.entries(DIRECTION_EMOJI_MAP).map(([direction, emoji]) => {
+            return (
+              <button
+                value={direction}
+                type='submit'
+                style={{
+                  padding: 0,
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '18.75vw',
+                }}
+                name='direction'
+              >
+                {emoji}
+              </button>
+            );
+          })}
+        </div>
+      </form>
+      <div>
+        {state.moveCandidates.map(({ player: { name }, direction }) => (
+          <div>
+            {`${prettifyName(name)} wants to move ${
+              DIRECTION_EMOJI_MAP[direction]
+            }`}
+          </div>
+        ))}
+      </div>
+
+      <table style={{ borderTop: 'solid' }}>
+        {state.moveHistory
+          .slice(-5)
+          .reverse()
+          .map(({ player: { name }, direction, time }) => (
+            <tr>
+              <td>{prettifyTime(time)}</td>
+              <td>{prettifyName(name)}</td>
+              <td>{DIRECTION_EMOJI_MAP[direction]}</td>
+            </tr>
+          ))}
+      </table>
     </body>
   </html>
 );

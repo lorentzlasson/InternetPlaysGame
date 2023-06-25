@@ -1,4 +1,3 @@
-- mobile friendly
 - ensure only one move candidate per player
 - patch smoke test
 - 24h
