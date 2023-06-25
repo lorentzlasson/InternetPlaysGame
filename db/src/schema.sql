@@ -23,18 +23,9 @@ create domain y as integer not null check (
   value >= 0 and value <= 2
 );
 
-create domain movement_range as integer not null check (
-  value >= -1 and value <= 1
-);
-
 create type position as (
   x x,
   y y
-);
-
-create type movement as (
-  x movement_range,
-  y movement_range
 );
 
 create table game (
