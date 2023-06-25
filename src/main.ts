@@ -33,6 +33,16 @@ const jwtSecret = await crypto.subtle.importKey(
 
 const router = new Router();
 
+const getSubFromJwt = async (token: string | undefined) => {
+  if (!token) return;
+
+  const { sub } = await verify(token, jwtSecret);
+  if (!sub) {
+    throw new Error('sub not in jwt payload');
+  }
+  return sub;
+};
+
 router
   .get('/favicon.ico', async (ctx) => {
     const faviconPath = `./src/ui/gamepad.svg`;
@@ -41,7 +51,10 @@ router
     ctx.response.type = 'image/svg+xml';
   })
   .get('/', async (ctx) => {
-    const state = await getUiState(gameId);
+    const token = await ctx.cookies.get('auth');
+    const playerName = await getSubFromJwt(token);
+
+    const state = await getUiState(gameId, playerName);
     const html = ui(state);
     ctx.response.body = html;
     ctx.response.type = 'text/html';
@@ -98,18 +111,12 @@ router
   })
   .post('/move', async (ctx) => {
     const token = await ctx.cookies.get('auth');
+    const playerName = await getSubFromJwt(token);
 
-    if (!token) {
+    if (!playerName) {
       ctx.response.status = 302;
       ctx.response.headers.set('Location', '/auth');
       return;
-    }
-
-    const { sub } = await verify(token, jwtSecret);
-
-    if (!sub) {
-      ctx.response.status = 500;
-      throw new Error('sub not in jwy payload');
     }
 
     const body = ctx.request.body();
@@ -117,7 +124,7 @@ router
     const direction = formData.get('direction');
 
     if (isDirection(direction)) {
-      await recordMove(gameId, direction, sub);
+      await recordMove(gameId, direction, playerName);
 
       ctx.response.status = 302;
       ctx.response.headers.set('Location', '/');

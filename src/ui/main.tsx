@@ -100,9 +100,7 @@ const ui = (state: State) => (
       <div style={{ borderBottom: 'solid', fontSize: '5vw' }}>
         {state.moveCandidates.map(({ player: { name }, direction }) => (
           <div>
-            {`${prettifyName(name)} wants to move ${
-              DIRECTION_EMOJI_MAP[direction]
-            }`}
+            {`You want to move ${DIRECTION_EMOJI_MAP[direction]}`}
           </div>
         ))}
       </div>

@@ -1,2 +1,3 @@
+- execute move after auth
 - patch smoke test
 - 24h

@@ -144,7 +144,10 @@ const randomMoveCandidate = async (gameId: number) => {
   return moveCandidates.at(0);
 };
 
-export const getUiState = async (gameId: number): Promise<State> => {
+export const getUiState = async (
+  gameId: number,
+  playerName: string | undefined,
+): Promise<State> => {
   const [dbGame] = await sql<{ score: number; highScore: number }[]>`
     select score, high_score
     from game
@@ -177,22 +180,9 @@ export const getUiState = async (gameId: number): Promise<State> => {
     where game_id = ${gameId}
   `;
 
-  const dbMoveCandidates = await sql<{ name: string; direction: Direction }[]>`
-    with fresh_candidates as (${freshCandidatesQuery})
-    select move_candidate.direction,
-           player.name
-    from move_candidate
-    inner join fresh_candidates on fresh_candidates.id = move_candidate.id
-    inner join player on player.id = move_candidate.player_id
-    where fresh_candidates.game_id = ${gameId}
-  `;
-
-  const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
-    direction,
-    player: {
-      name,
-    },
-  }));
+  const moveCandidates = playerName
+    ? await getPlayerMoveCandidate(gameId, playerName)
+    : [];
 
   const dbMoveHistory = await sql<
     { direction: Direction; time: Date; name: string }[]
@@ -234,6 +224,27 @@ const hasFreshMoveCandidate = async (playerName: string) => {
     )
   `;
   return exists;
+};
+
+const getPlayerMoveCandidate = async (gameId: number, playerName: string) => {
+  const dbMoveCandidates = await sql<{ name: string; direction: Direction }[]>`
+    with fresh_candidates as (${freshCandidatesQuery})
+    select move_candidate.direction,
+           player.name
+    from move_candidate
+    inner join fresh_candidates on fresh_candidates.id = move_candidate.id
+    inner join player on player.id = move_candidate.player_id
+    where fresh_candidates.game_id = ${gameId}
+    and player.name = ${playerName}
+  `;
+
+  const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
+    direction,
+    player: {
+      name,
+    },
+  }));
+  return moveCandidates;
 };
 
 // ---------- MUTATIONS ----------
