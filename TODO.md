@@ -1,3 +1,4 @@
+- prevent same pos for entities in same game
 - execute move after auth
 - patch smoke test
 - 24h
