@@ -42,7 +42,13 @@ const ui = (state: State) => (
       </meta>
     </head>
     <body>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: '5vw',
+        }}
+      >
         <div style={{ display: 'flex' }}>
           <div style={{ display: 'flex' }}>
             🪙<div id='score'>{state.score}</div>
@@ -57,7 +63,7 @@ const ui = (state: State) => (
             : ''}
         </div>
       </div>
-      <table style={{ fontSize: '25vw', borderTop: 'solid' }}>
+      <table style={{ fontSize: '25vw' }}>
         {range(HEIGHT).map((y) => (
           <tr>
             {range(WIDTH).map((x) => {
@@ -70,7 +76,7 @@ const ui = (state: State) => (
           </tr>
         ))}
       </table>
-      <form style={{ borderTop: 'solid' }} method='POST' action='/move'>
+      <form method='POST' action='/move'>
         <div>
           {Object.entries(DIRECTION_EMOJI_MAP).map(([direction, emoji]) => {
             return (
@@ -91,7 +97,7 @@ const ui = (state: State) => (
           })}
         </div>
       </form>
-      <div>
+      <div style={{ borderBottom: 'solid', fontSize: '5vw' }}>
         {state.moveCandidates.map(({ player: { name }, direction }) => (
           <div>
             {`${prettifyName(name)} wants to move ${
@@ -101,7 +107,7 @@ const ui = (state: State) => (
         ))}
       </div>
 
-      <table style={{ borderTop: 'solid' }}>
+      <table style={{ fontSize: '5vw' }}>
         {state.moveHistory
           .slice(-5)
           .reverse()
