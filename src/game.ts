@@ -223,6 +223,19 @@ export const getUiState = async (gameId: number): Promise<State> => {
   return state;
 };
 
+const hasFreshMoveCandidate = async (playerName: string) => {
+  const [{ exists }] = await sql<{ exists: boolean }[]>`
+
+    with fresh_candidates as (${freshCandidatesQuery})
+    select exists(
+      select 1
+      from fresh_candidates
+      where player_name = ${playerName}
+    )
+  `;
+  return exists;
+};
+
 // ---------- MUTATIONS ----------
 
 export const init = async () => {
@@ -356,9 +369,14 @@ export const recordMove = async (
 ) => {
   const player = await ensurePlayer(gameId, playerName);
 
-  await insertMoveCandidate(direction, player.id);
+  const hasFresh = await hasFreshMoveCandidate(playerName);
 
-  console.log('moveCandidate.added', { playerName, direction });
+  if (hasFresh) {
+    console.log('moveCandidate.exists', { playerName, direction });
+  } else {
+    await insertMoveCandidate(direction, player.id);
+    console.log('moveCandidate.added', { playerName, direction });
+  }
 };
 
 export const executeNextMove = async (gameId: number) => {
