@@ -132,7 +132,7 @@ router
       return;
     }
 
-    const body = ctx.request.body();
+    const body = ctx.request.body({ type: 'form' });
     const formData = await body.value;
     const direction = formData.get('direction');
 
