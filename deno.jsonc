@@ -5,6 +5,8 @@
     "dev": "deno run --allow-net --allow-read --allow-env --watch src/main.ts",
     "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write",
 
+    "qa:static": "deno fmt --check && deno lint",
+
     "console": "deno repl --allow-all --eval-file=console.ts",
 
     // One stop shop to run smoke test
