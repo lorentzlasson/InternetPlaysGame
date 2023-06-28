@@ -48,10 +48,15 @@ create table entity (
   position "position" not null
 );
 
+create table tick (
+  id serial primary key
+);
+
 create table move_candidate (
   id serial primary key,
   direction direction not null,
   player_id integer not null references player,
+  tick_id integer not null references tick,
   time timestamptz not null default now()
 );
 

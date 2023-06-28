@@ -113,7 +113,12 @@ const lastMovePerGameQuery = sql`
 `;
 
 const freshCandidatesQuery = sql`
-  with last_move_per_game as (${lastMovePerGameQuery})
+  with last_tick as (
+    select id
+    from tick
+    order by id desc
+    limit 1
+  )
   select
     move_candidate.id,
     game.id as game_id,
@@ -121,8 +126,7 @@ const freshCandidatesQuery = sql`
   from move_candidate
   inner join player on player.id = move_candidate.player_id
   inner join game on game.id = player.game_id
-  inner join last_move_per_game on last_move_per_game.id = game.id
-  where move_candidate.time > last_move_per_game.time
+  inner join last_tick on last_tick.id = move_candidate.tick_id
 `;
 
 const randomMoveCandidate = async (gameId: number) => {
@@ -306,6 +310,7 @@ export const init = async () => {
   const [existingGame] = await sql<{ id: number }[]>`
     select id
     from game
+    limit 1
   `;
   const existingGameId = existingGame?.id;
 
@@ -327,12 +332,12 @@ export const init = async () => {
     returning id
   `;
 
-  console.log('game.new', { newGameId });
-
   await sql`
-    delete from entity
-    where game_id = ${newGameId}
+    insert into tick
+    default values
   `;
+
+  console.log('game.new', { newGameId });
 
   const entityValues = ENTITIES_INIT.map((entity_init) => ({
     ...entity_init,
@@ -397,10 +402,16 @@ const blowUpBomb = async (gameId: number) => {
 };
 
 const registerMove = (moveCandidateId: number) =>
-  sql`
-    insert into move (move_candidate_id)
-    values (${moveCandidateId})
-  `;
+  Promise.all([
+    sql`
+  insert into move (move_candidate_id)
+  values (${moveCandidateId})
+  `,
+    sql`
+  insert into tick
+  default values
+  `,
+  ]);
 
 const createPlayer = async (gameId: number, playerName: string) => {
   const [player] = await sql<{ id: number; gameId: number; name: string }[]>`
@@ -422,8 +433,15 @@ const ensurePlayer = async (gameId: number, playerName: string) => {
 
 const insertMoveCandidate = (direction: Direction, playerId: number) =>
   sql`
-    insert into move_candidate (direction, player_id)
-    values (${direction}, ${playerId})
+    with last_tick as (
+      select id
+      from tick
+      order by id desc
+      limit 1
+    )
+    insert into move_candidate (direction, player_id, tick_id)
+    select ${direction}, ${playerId}, last_tick.id
+    from last_tick
   `;
 
 export const recordMove = async (
