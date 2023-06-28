@@ -3,7 +3,6 @@ import {
   EntityType,
   isSamePosition,
   MOVE_MOVEMENT_MAP,
-  MOVE_SELECTION_MILLIS,
   Position,
   positionIsAllowed,
   POSITIONS,
@@ -444,7 +443,7 @@ export const recordMove = async (
   }
 };
 
-export const executeNextMove = async (gameId: number) => {
+export const tick = async (gameId: number) => {
   const nextMove = await randomMoveCandidate(gameId);
 
   if (nextMove) {
@@ -480,6 +479,4 @@ export const executeNextMove = async (gameId: number) => {
   } else {
     console.log('noMove.noCandidates');
   }
-
-  setTimeout(() => executeNextMove(gameId), MOVE_SELECTION_MILLIS);
 };

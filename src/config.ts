@@ -22,5 +22,6 @@ export const jwtSecret = parseStringEnv('JWT_SECRET');
 export const googleClientId = parseStringEnv('GOOGLE_CLIENT_ID');
 export const googleClientSecret = parseStringEnv('GOOGLE_CLIENT_SECRET');
 export const googleRedirectUri = parseStringEnv('GOOGLE_REDIRECT_URI');
+export const tickerApiKey = parseStringEnv('TICKER_API_KEY');
 
 export const secureCookie = parseBooleanEnv('SECURE_COOKIE');

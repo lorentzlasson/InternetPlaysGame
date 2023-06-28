@@ -6,13 +6,7 @@ import {
   Payload,
   verify,
 } from 'https://deno.land/x/djwt@v2.9/mod.ts';
-import {
-  executeNextMove,
-  getStatsUiState,
-  getUiState,
-  init,
-  recordMove,
-} from './game.ts';
+import { getStatsUiState, getUiState, init, recordMove, tick } from './game.ts';
 import { isDirection } from './common.ts';
 import {
   googleClientId,
@@ -20,6 +14,7 @@ import {
   googleRedirectUri,
   jwtSecret as rawJwtSecret,
   secureCookie,
+  tickerApiKey,
 } from './config.ts';
 import ui from './ui/main.tsx';
 import statsUi from './ui/stats.tsx';
@@ -27,8 +22,6 @@ import statsUi from './ui/stats.tsx';
 const PORT = 8000;
 
 const gameId = await init();
-
-executeNextMove(gameId);
 
 const jwtSecret = await crypto.subtle.importKey(
   'raw',
@@ -144,6 +137,19 @@ router
     } else {
       ctx.response.status = 400;
     }
+  })
+  .post('/tick', async (ctx) => {
+    const apiKey = ctx.request.headers.get('x-api-key');
+
+    if (!apiKey || apiKey !== tickerApiKey) {
+      ctx.response.status = 403;
+      return;
+    }
+
+    await tick(gameId);
+
+    ctx.response.status = 200;
+    return;
   });
 
 const app = new Application();
