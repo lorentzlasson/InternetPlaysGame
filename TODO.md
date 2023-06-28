@@ -1,4 +1,6 @@
+- fix desktop view
 - prevent same pos for entities in same game
   - prepare move identifier for uppcoming move after each move
+- stats page
 - execute move after auth
 - patch smoke test
