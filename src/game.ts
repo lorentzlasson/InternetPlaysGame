@@ -460,10 +460,10 @@ export const executeNextMove = async (gameId: number) => {
 
     if (positionIsAllowed(newPosition)) {
       await sql`
-          update entity
-          set position = ${sql.typed.position(newPosition)}
-          where type = ${avatar.type}
-          `;
+        update entity
+        set position = ${sql.typed.position(newPosition)}
+        where type = ${avatar.type}
+      `;
 
       if (await positionHasEntity(gameId, newPosition, 'coin')) {
         await collectCoin(gameId);
