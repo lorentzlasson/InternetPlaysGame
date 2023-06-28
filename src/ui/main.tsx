@@ -59,31 +59,45 @@ const ui = (state: UiState) => (
             : ''}
         </div>
       </div>
-      <table style={{ fontSize: '25vw' }}>
+      <div
+        style={{
+          fontSize: '25vw',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
         {range(HEIGHT).map((y) => (
-          <tr>
+          <div
+            style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+          >
             {range(WIDTH).map((x) => {
               const entity = state.entities.find((e) =>
                 isSamePosition(e.position, [x, y])
               );
               const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
-              return <td>{emoji}</td>;
+              return (
+                <div style={{ textAlign: 'center', padding: '0 5px' }}>
+                  {emoji}
+                </div>
+              );
             })}
-          </tr>
+          </div>
         ))}
-      </table>
+      </div>
       <form method='POST' action='/move'>
-        <div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           {Object.entries(DIRECTION_EMOJI_MAP).map(([direction, emoji]) => {
             return (
               <button
                 value={direction}
                 type='submit'
                 style={{
-                  padding: 0,
+                  padding: '0 5px',
                   background: 'none',
                   border: 'none',
                   fontSize: '18.75vw',
+                  textAlign: 'center',
                 }}
                 name='direction'
               >
