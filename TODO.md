@@ -1,5 +1,6 @@
 - show % candidates after your candidate
 - fix desktop view
+- limit rate
 - stats page
 - execute move after auth
 - patch smoke test
