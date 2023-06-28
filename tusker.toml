@@ -1,0 +1,9 @@
+[schema]
+filename = "db/src/schema.sql"
+
+[database]
+url = "${DB_URL}"
+
+[migra]
+safe = false
+privileges = false
