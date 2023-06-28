@@ -38,7 +38,7 @@ create table game (
 create table player (
   id serial primary key,
   game_id integer not null references game,
-  name text not null
+  name text not null unique
 );
 
 create table entity (
@@ -57,11 +57,36 @@ create table move_candidate (
   direction direction not null,
   player_id integer not null references player,
   tick_id integer not null references tick,
-  time timestamptz not null default now()
+  time timestamptz not null default now(),
+  unique (player_id, tick_id)
 );
 
 create table move (
   id serial primary key,
-  move_candidate_id integer not null references move_candidate,
+  move_candidate_id integer not null references move_candidate unique,
   time timestamptz not null default now()
 );
+
+-- migration tool schema --
+
+create schema atlas_schema_revisions;
+
+create table atlas_schema_revisions.atlas_schema_revisions (
+  version character varying not null,
+  description character varying not null,
+  type bigint not null default 2,
+  applied bigint not null default 0,
+  total bigint not null default 0,
+  executed_at timestamp with time zone not null,
+  execution_time bigint not null,
+  error text,
+  error_stmt text,
+  hash character varying not null,
+  partial_hashes jsonb,
+  operator_version character varying not null
+);
+
+create unique index atlas_schema_revisions_pkey on atlas_schema_revisions.atlas_schema_revisions using btree (version);
+
+alter table atlas_schema_revisions.atlas_schema_revisions
+add constraint atlas_schema_revisions_pkey primary key using index atlas_schema_revisions_pkey;

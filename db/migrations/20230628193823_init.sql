@@ -23,18 +23,9 @@ create domain y as integer not null check (
   value >= 0 and value <= 2
 );
 
-create domain movement_range as integer not null check (
-  value >= -1 and value <= 1
-);
-
 create type position as (
   x x,
   y y
-);
-
-create type movement as (
-  x movement_range,
-  y movement_range
 );
 
 create table game (
@@ -47,7 +38,7 @@ create table game (
 create table player (
   id serial primary key,
   game_id integer not null references game,
-  name text not null
+  name text not null unique
 );
 
 create table entity (
@@ -57,15 +48,21 @@ create table entity (
   position "position" not null
 );
 
+create table tick (
+  id serial primary key
+);
+
 create table move_candidate (
   id serial primary key,
   direction direction not null,
   player_id integer not null references player,
-  time timestamptz not null default now()
+  tick_id integer not null references tick,
+  time timestamptz not null default now(),
+  unique (player_id, tick_id)
 );
 
 create table move (
   id serial primary key,
-  move_candidate_id integer not null references move_candidate,
+  move_candidate_id integer not null references move_candidate unique,
   time timestamptz not null default now()
 );
