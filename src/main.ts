@@ -36,11 +36,16 @@ const router = new Router();
 const getSubFromJwt = async (token: string | undefined) => {
   if (!token) return;
 
-  const { sub } = await verify(token, jwtSecret);
-  if (!sub) {
-    throw new Error('sub not in jwt payload');
+  try {
+    const { sub } = await verify(token, jwtSecret);
+    if (!sub) {
+      throw new Error('sub not in jwt payload');
+    }
+    return sub;
+  } catch (e) {
+    console.log(e);
+    return;
   }
-  return sub;
 };
 
 router
