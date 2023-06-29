@@ -31,6 +31,11 @@ export type MoveCandidate = {
   player: Player;
 };
 
+export type MoveCandidateCount = {
+  direction: Direction;
+  count: number;
+};
+
 export type Move = {
   direction: Direction;
   player: Player;
@@ -42,6 +47,7 @@ export type UiState = {
   highScore: number;
   lastMoveAt: string;
   entities: readonly Entity[];
+  moveCandidateCounts: readonly MoveCandidateCount[];
 
   signedInMoveCandidates: readonly MoveCandidate[];
 };

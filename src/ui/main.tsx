@@ -6,6 +6,7 @@ import {
   EMOJI_MAP,
   HEIGHT,
   isSamePosition,
+  MoveCandidateCount,
   range,
   UiState,
   WIDTH,
@@ -25,6 +26,10 @@ const prettifyTime = (timeString: string) => {
   const seconds = date.getSeconds().toString().padStart(2, '0');
   return `${hours}:${minutes}:${seconds}`;
 };
+
+const totalCandidateCount = (
+  moveCandidateCounts: readonly MoveCandidateCount[],
+) => moveCandidateCounts.reduce((acc, val) => acc + val.count, 0);
 
 const ui = (state: UiState) => (
   <html>
@@ -111,6 +116,19 @@ const ui = (state: UiState) => (
         {state.signedInMoveCandidates.map(({ direction }) => (
           <div>
             {`You want to move ${DIRECTION_EMOJI_MAP[direction]}`}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex' }}>
+        {state.moveCandidateCounts.map(({ direction, count }) => (
+          <div
+            style={{
+              fontSize: `${
+                (count / totalCandidateCount(state.moveCandidateCounts)) * 100
+              }vw`,
+            }}
+          >
+            {DIRECTION_EMOJI_MAP[direction]}
           </div>
         ))}
       </div>
