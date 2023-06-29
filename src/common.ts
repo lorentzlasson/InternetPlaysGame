@@ -31,9 +31,9 @@ export type MoveCandidate = {
   player: Player;
 };
 
-export type MoveCandidateCount = {
+export type DirectionPercentage = {
   direction: Direction;
-  count: number;
+  percent: number;
 };
 
 export type Move = {
@@ -47,7 +47,7 @@ export type UiState = {
   highScore: number;
   lastMoveAt: string;
   entities: readonly Entity[];
-  moveCandidateCounts: readonly MoveCandidateCount[];
+  directionPercentages: readonly DirectionPercentage[];
 
   signedInMoveCandidates: readonly MoveCandidate[];
 };
@@ -117,3 +117,17 @@ export const isSamePosition = (
   [x1, y1]: Position,
   [x2, y2]: Position,
 ): boolean => x1 === x2 && y1 === y2;
+
+export const calcDirectionPercentages = (
+  moveCandidateCounts: { direction: Direction; count: number }[],
+) => {
+  const totalCandidateCount = moveCandidateCounts.reduce(
+    (acc, val) => acc + val.count,
+    0,
+  );
+
+  return moveCandidateCounts.map(({ direction, count }) => ({
+    direction,
+    percent: count / totalCandidateCount,
+  }));
+};

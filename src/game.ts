@@ -1,9 +1,9 @@
 import {
+  calcDirectionPercentages,
   Direction,
   EntityType,
   isSamePosition,
   MOVE_MOVEMENT_MAP,
-  MoveCandidateCount,
   Position,
   positionIsAllowed,
   POSITIONS,
@@ -183,23 +183,27 @@ export const getUiState = async (
     ? await getPlayerMoveCandidate(gameId, playerName)
     : [];
 
-  const moveCandidateCounts = await sql<MoveCandidateCount[]>`
+  const moveCandidateCounts = await sql<
+    { direction: Direction; count: number }[]
+  >`
     with last_tick as (
       select id
       from tick
       order by id desc
       limit 1
     )
-    select move_candidate.direction, count(*)
+    select move_candidate.direction, count(*)::integer
     from move_candidate
     inner join last_tick on last_tick.id = move_candidate.tick_id
     group by 1
   `;
 
+  const directionPercentages = calcDirectionPercentages(moveCandidateCounts);
+
   const state = {
     ...game,
     entities,
-    moveCandidateCounts,
+    directionPercentages,
     signedInMoveCandidates,
   };
 
