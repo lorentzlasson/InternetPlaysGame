@@ -1,0 +1,11 @@
+name: citest
+
+on:
+  push:
+    branches: [ citest ]
+
+jobs:
+  citest:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo citest
