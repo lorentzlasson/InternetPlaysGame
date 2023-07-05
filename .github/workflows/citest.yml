@@ -1,8 +1,6 @@
 name: citest
 
 on:
-  push:
-    branches: [ citest ]
   workflow_dispatch:
     issue_comment:
       types: [created, edited]
@@ -12,4 +10,4 @@ jobs:
   citest:
     runs-on: ubuntu-latest
     steps:
-      - run: echo citest2
+      - run: echo citest3
