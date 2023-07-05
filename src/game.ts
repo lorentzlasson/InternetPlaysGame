@@ -199,11 +199,14 @@ export const getUiState = async (
 
   const directionPercentages = calcDirectionPercentages(moveCandidateCounts);
 
+  const lastAvatarPosition = await getLastAvatarPosition();
+
   const state = {
     ...game,
     entities,
     directionPercentages,
     signedInMoveCandidates,
+    lastAvatarPosition,
   };
 
   return state;
@@ -320,6 +323,27 @@ const getPlayerMoveCandidate = async (gameId: number, playerName: string) => {
     },
   }));
   return moveCandidates;
+};
+
+const getLastAvatarPosition = async (): Promise<Position> => {
+  const lastMoveDirectionRows = await sql<
+    { direction: Direction }[]
+  >`
+    select mc.direction
+    from move m
+    inner join move_candidate mc on mc.id = m.move_candidate_id
+    order by m.time desc
+    limit 1
+  `;
+  const lastMoveDirection = lastMoveDirectionRows.at(0);
+  if (!lastMoveDirection) throw new Error();
+
+  const avatar = await findAvatar();
+
+  const [x, y] = avatar.position;
+
+  const [mX, mY] = MOVE_MOVEMENT_MAP[lastMoveDirection.direction];
+  return [x - mX, y - mY];
 };
 
 // ---------- MUTATIONS ----------

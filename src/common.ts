@@ -47,6 +47,7 @@ export type UiState = {
   highScore: number;
   lastMoveAt: string;
   entities: readonly Entity[];
+  lastAvatarPosition: Position | null;
   directionPercentages: readonly DirectionPercentage[];
 
   signedInMoveCandidates: readonly MoveCandidate[];

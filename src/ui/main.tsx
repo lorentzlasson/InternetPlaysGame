@@ -77,8 +77,24 @@ const ui = (state: UiState) => (
               );
               const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
               return (
-                <div style={{ textAlign: 'center', padding: '0 5px' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '0 5px',
+                    position: 'relative',
+                  }}
+                >
                   {emoji}
+                  {state.lastAvatarPosition &&
+                      isSamePosition(state.lastAvatarPosition, [x, y])
+                    ? (
+                      <div
+                        style={{ position: 'absolute', top: 0, opacity: '0.2' }}
+                      >
+                        {EMOJI_MAP['avatar']}
+                      </div>
+                    )
+                    : ''}
                 </div>
               );
             })}

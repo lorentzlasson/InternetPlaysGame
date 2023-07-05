@@ -1,3 +1,4 @@
+- remove game id
 - fix desktop view
 - limit rate
 - stats page
