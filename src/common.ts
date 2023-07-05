@@ -6,7 +6,7 @@ type BaseEntity = {
   position: Position;
 };
 
-type Avatar = BaseEntity & {
+export type Avatar = BaseEntity & {
   type: 'avatar';
 };
 

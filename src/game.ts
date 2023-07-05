@@ -1,4 +1,5 @@
 import {
+  Avatar,
   calcDirectionPercentages,
   Direction,
   EntityType,
@@ -46,18 +47,16 @@ const findPlayer = async (gameId: number, playerName: string) => {
   return players.at(0);
 };
 
-const findAvatar = async (gameId: number) => {
+const findAvatar = async (): Promise<Avatar> => {
   const [avatar] = await sql<
     {
-      id: number;
-      type: EntityType;
+      type: 'avatar';
       position: Position;
     }[]
   >`
-      select id, type, position
+      select type, position
       from entity
-      where game_id = ${gameId}
-      and type = 'avatar'
+      where type = 'avatar'
     `;
   return avatar;
 };
@@ -484,7 +483,7 @@ export const tick = async (gameId: number) => {
   const nextMove = await randomMoveCandidate(gameId);
 
   if (nextMove) {
-    const avatar = await findAvatar(gameId);
+    const avatar = await findAvatar();
 
     const { direction, playerName, moveCandidateId } = nextMove;
 
