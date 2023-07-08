@@ -87,27 +87,6 @@ const ui = (state: UiState) => {
       <body>
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '5vw',
-          }}
-        >
-          <div style={{ display: 'flex' }}>
-            <div style={{ display: 'flex' }}>
-              🪙<div id='score'>{state.score}</div>
-            </div>
-            <div style={{ display: 'flex' }}>
-              🥇<div id='highScore'>{state.highScore}</div>
-            </div>
-          </div>
-          <div id='lastMoveAt'>
-            {state.lastMoveAt
-              ? `Last move at ${prettifyTime(state.lastMoveAt)}`
-              : ''}
-          </div>
-        </div>
-        <div
-          style={{
             fontSize: '25vw',
             display: 'flex',
             flexDirection: 'column',
@@ -191,6 +170,28 @@ const ui = (state: UiState) => {
               {`You want to move ${DIRECTION_EMOJI_MAP[direction]}`}
             </div>
           ))}
+        </div>
+        <div
+          style={{
+            paddingTop: '15px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '5vw',
+          }}
+        >
+          <div style={{ display: 'flex' }}>
+            <div style={{ display: 'flex' }}>
+              🪙<div id='score'>{state.score}</div>
+            </div>
+            <div style={{ display: 'flex' }}>
+              🥇<div id='highScore'>{state.highScore}</div>
+            </div>
+          </div>
+          <div id='lastMoveAt'>
+            {state.lastMoveAt
+              ? `Last move at ${prettifyTime(state.lastMoveAt)}`
+              : ''}
+          </div>
         </div>
       </body>
     </html>
