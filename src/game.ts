@@ -182,22 +182,9 @@ export const getUiState = async (
     ? await getPlayerMoveCandidate(gameId, playerName)
     : [];
 
-  const moveCandidateCounts = await sql<
-    { direction: Direction; count: number }[]
-  >`
-    with last_tick as (
-      select id
-      from tick
-      order by id desc
-      limit 1
-    )
-    select move_candidate.direction, count(*)::integer
-    from move_candidate
-    inner join last_tick on last_tick.id = move_candidate.tick_id
-    group by 1
-  `;
-
-  const directionPercentages = calcDirectionPercentages(moveCandidateCounts);
+  const directionPercentages = signedInMoveCandidates.length > 0
+    ? await getDirectionPercentages()
+    : [];
 
   const lastAvatarPosition = await getLastAvatarPosition();
 
@@ -344,6 +331,25 @@ const getLastAvatarPosition = async (): Promise<Position> => {
 
   const [mX, mY] = MOVE_MOVEMENT_MAP[lastMoveDirection.direction];
   return [x - mX, y - mY];
+};
+
+const getDirectionPercentages = async () => {
+  const moveCandidateCounts = await sql<
+    { direction: Direction; count: number }[]
+  >`
+    with last_tick as (
+      select id
+      from tick
+      order by id desc
+      limit 1
+    )
+    select move_candidate.direction, count(*)::integer
+    from move_candidate
+    inner join last_tick on last_tick.id = move_candidate.tick_id
+    group by 1
+  `;
+
+  return calcDirectionPercentages(moveCandidateCounts);
 };
 
 // ---------- MUTATIONS ----------
