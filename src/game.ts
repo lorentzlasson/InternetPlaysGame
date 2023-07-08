@@ -178,11 +178,11 @@ export const getUiState = async (
     where game_id = ${gameId}
   `;
 
-  const signedInMoveCandidates = playerName
+  const signedInMoveCandidate = playerName
     ? await getPlayerMoveCandidate(gameId, playerName)
-    : [];
+    : null;
 
-  const directionPercentages = signedInMoveCandidates.length > 0
+  const directionPercentages = signedInMoveCandidate
     ? await getDirectionPercentages()
     : [];
 
@@ -192,7 +192,7 @@ export const getUiState = async (
     ...game,
     entities,
     directionPercentages,
-    signedInMoveCandidates,
+    signedInMoveCandidate,
     lastAvatarPosition,
   };
 
@@ -293,7 +293,7 @@ const hasFreshMoveCandidate = async (playerName: string) => {
 };
 
 const getPlayerMoveCandidate = async (gameId: number, playerName: string) => {
-  const dbMoveCandidates = await sql<{ name: string; direction: Direction }[]>`
+  const moveCandidates = await sql<{ name: string; direction: Direction }[]>`
     with fresh_candidates as (${freshCandidatesQuery})
     select move_candidate.direction
     from move_candidate
@@ -302,14 +302,16 @@ const getPlayerMoveCandidate = async (gameId: number, playerName: string) => {
     where fresh_candidates.game_id = ${gameId}
     and player.name = ${playerName}
   `;
+  const x = moveCandidates.at(0);
 
-  const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
-    direction,
+  if (!x) return null;
+
+  return {
+    direction: x.direction,
     player: {
-      name,
+      name: x.name,
     },
-  }));
-  return moveCandidates;
+  };
 };
 
 const getLastAvatarPosition = async (): Promise<Position> => {

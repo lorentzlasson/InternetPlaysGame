@@ -4,5 +4,4 @@
 - execute move after auth
 - emoji export function
 - remove game id
-- assume only one move candidate per player
 - patch smoke test

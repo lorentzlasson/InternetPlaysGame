@@ -171,11 +171,12 @@ const ui = (state: UiState) => {
           </div>
         </form>
         <div style={{ fontSize: '5vw' }}>
-          {state.signedInMoveCandidates.map(({ direction }) => (
-            <div>
-              🗳️ {DIRECTION_EMOJI_MAP[direction]}
-            </div>
-          ))}
+          {state.signedInMoveCandidate &&
+            (
+              <div>
+                🗳️ {DIRECTION_EMOJI_MAP[state.signedInMoveCandidate.direction]}
+              </div>
+            )}
         </div>
         <div
           style={{

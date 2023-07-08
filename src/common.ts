@@ -50,7 +50,7 @@ export type UiState = {
   lastAvatarPosition: Position | null;
   directionPercentages: readonly DirectionPercentage[];
 
-  signedInMoveCandidates: readonly MoveCandidate[];
+  signedInMoveCandidate: MoveCandidate | null;
 };
 
 export type StatsUiState = {
