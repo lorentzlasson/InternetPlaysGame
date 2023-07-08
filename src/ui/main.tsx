@@ -181,13 +181,13 @@ const ui = (state: UiState) => {
         >
           <div style={{ display: 'flex' }}>
             <div style={{ display: 'flex' }}>
-              🪙<div id='score'>{state.score}</div>
+              🪙<div>{state.score}</div>
             </div>
             <div style={{ display: 'flex' }}>
-              🥇<div id='highScore'>{state.highScore}</div>
+              🥇<div>{state.highScore}</div>
             </div>
           </div>
-          <div id='lastMoveAt'>
+          <div>
             {state.lastMoveAt
               ? `Last move at ${prettifyTime(state.lastMoveAt)}`
               : ''}
