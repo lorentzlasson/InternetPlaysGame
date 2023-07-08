@@ -167,7 +167,7 @@ const ui = (state: UiState) => {
         <div style={{ fontSize: '5vw' }}>
           {state.signedInMoveCandidates.map(({ direction }) => (
             <div>
-              {`You want to move ${DIRECTION_EMOJI_MAP[direction]}`}
+              {`You voted to move ${DIRECTION_EMOJI_MAP[direction]}`}
             </div>
           ))}
         </div>
