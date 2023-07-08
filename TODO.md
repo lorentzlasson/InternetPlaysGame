@@ -1,6 +1,7 @@
 - remove game id
+- assume only one move candidate per player
 - fix desktop view
 - limit rate
-- stats page
 - execute move after auth
+- emoji export function
 - patch smoke test
