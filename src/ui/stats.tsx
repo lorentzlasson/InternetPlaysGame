@@ -76,6 +76,7 @@ const ui = (state: StatsUiState) => (
           </tr>
         ))}
       </table>
+      Move condidates:
       <div style={{ fontSize: '5vw' }}>
         {state.moveCandidates.map(({ player: { name }, direction }) => (
           <div>
@@ -86,11 +87,13 @@ const ui = (state: StatsUiState) => (
         ))}
       </div>
 
+      Players:
       <ul style={{ fontSize: '5vw' }}>
         {state.players
           .map(({ name }) => <li>{prettifyName(name)}</li>)}
       </ul>
 
+      Moves:
       <table style={{ fontSize: '5vw' }}>
         {state.moveHistory
           .slice(0)
