@@ -153,6 +153,7 @@ const ui = (state: UiState) => {
                   <button
                     value={direction}
                     type='submit'
+                    disabled={state.signedInMoveCandidate ? true : undefined}
                     style={{
                       padding: '0 5px',
                       background: 'none',
@@ -160,6 +161,10 @@ const ui = (state: UiState) => {
                       fontSize: '18.75vw',
                       textAlign: 'center',
                       opacity: `${opacity}`,
+                      cursor: state.signedInMoveCandidate
+                        ? 'default'
+                        : 'pointer',
+                      color: 'inherit',
                     }}
                     name='direction'
                   >

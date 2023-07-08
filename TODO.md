@@ -1,4 +1,3 @@
-- buttons clickable only if not voted
 - create desktop view
 - limit rate
 - execute move after auth
