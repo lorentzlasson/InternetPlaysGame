@@ -28,6 +28,19 @@ const prettifyTime = (timeString: string) => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
+const nextMidnight = new Date();
+nextMidnight.setUTCDate(nextMidnight.getUTCDate() + 1);
+nextMidnight.setUTCHours(0, 0, 0, 0);
+const getTimeUntilNextMove = () => {
+  const now = new Date();
+  const diffMs = nextMidnight.getTime() - now.getTime();
+
+  return {
+    hours: Math.floor((diffMs % 86400000) / 3600000),
+    minutes: Math.round(((diffMs % 86400000) % 3600000) / 60000),
+  };
+};
+
 const getCompletedDirectionPercentages = (
   dirPercentages: readonly DirectionPercentage[],
 ): readonly DirectionPercentage[] =>
@@ -73,6 +86,7 @@ const getOpacityForDirection = (
 
 const ui = (state: UiState) => {
   const opacities = transformPercentagesToOpacity(state.directionPercentages);
+  const timeUntilNextMove = getTimeUntilNextMove();
   return (
     <html>
       <head>
@@ -188,9 +202,7 @@ const ui = (state: UiState) => {
             </div>
           </div>
           <div>
-            {state.lastMoveAt
-              ? `Last move at ${prettifyTime(state.lastMoveAt)}`
-              : ''}
+            ⌛{timeUntilNextMove.hours}:{timeUntilNextMove.minutes}
           </div>
         </div>
       </body>
