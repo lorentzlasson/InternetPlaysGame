@@ -1,7 +1,8 @@
-- remove game id
-- assume only one move candidate per player
-- fix desktop view
+- buttons clickable only if not voted
+- create desktop view
 - limit rate
 - execute move after auth
 - emoji export function
+- remove game id
+- assume only one move candidate per player
 - patch smoke test
