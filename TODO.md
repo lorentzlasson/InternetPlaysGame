@@ -1,6 +1,6 @@
-- create desktop view
-- limit rate
 - execute move after auth
 - emoji export function
+- create desktop view
+- limit rate
 - remove game id
 - patch smoke test
