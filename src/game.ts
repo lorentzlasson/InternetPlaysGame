@@ -300,7 +300,7 @@ const getLastAvatarPosition = async (): Promise<Position | null> => {
     limit 1
   `;
   const lastMoveDirection = lastMoveDirectionRows.at(0);
-  if (!lastMoveDirection) throw new Error();
+  if (!lastMoveDirection) return null;
 
   const avatar = await findAvatar();
 
