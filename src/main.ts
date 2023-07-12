@@ -16,7 +16,8 @@ import {
   secureCookie,
   tickerApiKey,
 } from './config.ts';
-import ui from './ui/main.tsx';
+import mobileUi from './ui/mobile.tsx';
+import desktopUi from './ui/desktop.tsx';
 import statsUi from './ui/stats.tsx';
 
 const PORT = 8000;
@@ -60,7 +61,11 @@ router
     const playerName = await getSubFromJwt(token);
 
     const state = await getUiState(gameId, playerName);
-    const html = ui(state);
+
+    const userAgent = ctx.request.headers.get('User-Agent') || '';
+
+    const html = /mobile/i.test(userAgent) ? mobileUi(state) : desktopUi(state);
+
     ctx.response.body = html;
     ctx.response.type = 'text/html';
   })
