@@ -26,6 +26,14 @@ const prettifyTime = (timeString: string) => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
+const prettifyDate = (timeString: string) => {
+  const date = new Date(timeString);
+  const day = ('0' + date.getDate()).slice(-2);
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const year = date.getFullYear().toString().substring(2);
+  return `${year}-${month}-${day}`;
+};
+
 const prettifyName = (name: string) => {
   return name.slice(-4);
 };
@@ -41,71 +49,125 @@ const ui = (state: StatsUiState) => (
       >
       </meta>
     </head>
-    <body>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: '5vw',
-        }}
-      >
-        <div style={{ display: 'flex' }}>
-          <div style={{ display: 'flex' }}>
-            🪙<div id='score'>{state.score}</div>
-          </div>
-          <div style={{ display: 'flex' }}>
-            🥇<div id='highScore'>{state.highScore}</div>
-          </div>
-        </div>
-        <div id='lastMoveAt'>
-          {state.lastMoveAt
-            ? `Last move at ${prettifyTime(state.lastMoveAt)}`
-            : ''}
-        </div>
-      </div>
-      <table style={{ fontSize: '25vw' }}>
-        {range(HEIGHT).map((y) => (
-          <tr>
-            {range(WIDTH).map((x) => {
-              const entity = state.entities.find((e) =>
-                isSamePosition(e.position, [x, y])
-              );
-              const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
-              return <td>{emoji}</td>;
-            })}
-          </tr>
-        ))}
-      </table>
-      Move condidates:
-      <div style={{ fontSize: '5vw' }}>
-        {state.moveCandidates.map(({ player: { name }, direction }) => (
-          <div>
-            {`${prettifyName(name)} wants to move ${
-              DIRECTION_EMOJI_MAP[direction]
-            }`}
-          </div>
-        ))}
-      </div>
 
-      Players:
-      <ul style={{ fontSize: '5vw' }}>
-        {state.players
-          .map(({ name }) => <li>{prettifyName(name)}</li>)}
-      </ul>
-
-      Moves:
-      <table style={{ fontSize: '5vw' }}>
-        {state.moveHistory
-          .slice(0)
-          .reverse()
-          .map(({ player: { name }, direction, time }) => (
-            <tr>
-              <td>{prettifyTime(time)}</td>
-              <td>{prettifyName(name)}</td>
-              <td>{DIRECTION_EMOJI_MAP[direction]}</td>
-            </tr>
+    <body style={{ display: 'flex' }}>
+      <div>
+        <div
+          id='board'
+          style={{
+            fontSize: '7vw',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {range(HEIGHT).map((y) => (
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+              }}
+            >
+              {range(WIDTH).map((x) => {
+                const entity = state.entities.find((e) =>
+                  isSamePosition(e.position, [x, y])
+                );
+                const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
+                return (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '0 5px',
+                      position: 'relative',
+                    }}
+                  >
+                    {emoji}
+                  </div>
+                );
+              })}
+            </div>
           ))}
-      </table>
+        </div>
+        <div style={{ display: 'flex' }}>
+          {Object.entries(DIRECTION_EMOJI_MAP).map(
+            ([direction, emoji]) => {
+              return (
+                <button
+                  value={direction}
+                  style={{
+                    padding: '0 5px',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '5vw',
+                    textAlign: 'center',
+                  }}
+                >
+                  {emoji}
+                </button>
+              );
+            },
+          )}
+        </div>
+
+        <div style={{ fontSize: '2vw' }}>
+          <div id='lastMoveAt'>
+            {state.lastMoveAt
+              ? `Last move at ${prettifyTime(state.lastMoveAt)}`
+              : ''}
+          </div>
+          <div
+            style={{
+              paddingTop: '15px',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ display: 'flex' }}>
+              <div style={{ display: 'flex' }}>
+                🪙<div>{state.score}</div>
+              </div>
+              <div style={{ display: 'flex' }}>
+                🥇<div>{state.highScore}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ fontSize: '1vw' }}>
+        <div style={{ paddingBottom: '10px' }}>
+          Move condidates:
+          {state.moveCandidates.map(({ player: { name }, direction }) => (
+            <div>
+              {`${prettifyName(name)} wants to move ${
+                DIRECTION_EMOJI_MAP[direction]
+              }`}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ paddingBottom: '10px' }}>
+          Players:
+          <ul>
+            {state.players
+              .map(({ name }) => <li>{prettifyName(name)}</li>)}
+          </ul>
+        </div>
+
+        <div style={{ paddingBottom: '10px' }}>
+          Moves:
+          <table>
+            {state.moveHistory
+              .slice(0)
+              .reverse()
+              .map(({ player: { name }, direction, time }) => (
+                <tr>
+                  <td>{prettifyDate(time)}</td>
+                  <td>{prettifyName(name)}</td>
+                  <td>{DIRECTION_EMOJI_MAP[direction]}</td>
+                </tr>
+              ))}
+          </table>
+        </div>
+      </div>
     </body>
   </html>
 );
