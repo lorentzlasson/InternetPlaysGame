@@ -1,4 +1,3 @@
-- execute move after auth
 - emoji export function
 - create desktop view
 - limit rate

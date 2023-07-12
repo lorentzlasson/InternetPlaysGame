@@ -70,18 +70,9 @@ router
     ctx.response.body = html;
     ctx.response.type = 'text/html';
   })
-  .get('/auth', (ctx) => {
-    const baseURL = 'https://accounts.google.com/o/oauth2/v2/auth';
-    const params = new URLSearchParams({
-      client_id: googleClientId,
-      redirect_uri: googleRedirectUri,
-      response_type: 'code',
-      scope: 'openid',
-    });
-    ctx.response.redirect(`${baseURL}?${params}`);
-  })
   .get('/auth/callback', async (ctx) => {
     const code = ctx.request.url.searchParams.get('code');
+    const direction = ctx.request.url.searchParams.get('state');
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -117,6 +108,13 @@ router
       secure: secureCookie,
     });
 
+    if (!isDirection(direction)) {
+      ctx.response.status = 400;
+      return;
+    }
+
+    await recordMove(gameId, direction, oauthPayload.sub);
+
     ctx.response.status = 302;
     ctx.response.headers.set('Location', '/');
   })
@@ -124,24 +122,31 @@ router
     const token = await ctx.cookies.get('auth');
     const playerName = await getSubFromJwt(token);
 
-    if (!playerName) {
-      ctx.response.status = 302;
-      ctx.response.headers.set('Location', '/auth');
-      return;
-    }
-
     const body = ctx.request.body({ type: 'form' });
     const formData = await body.value;
     const direction = formData.get('direction');
 
-    if (isDirection(direction)) {
-      await recordMove(gameId, direction, playerName);
-
-      ctx.response.status = 302;
-      ctx.response.headers.set('Location', '/');
-    } else {
+    if (!isDirection(direction)) {
       ctx.response.status = 400;
+      return;
     }
+
+    if (!playerName) {
+      const baseURL = 'https://accounts.google.com/o/oauth2/v2/auth';
+      const params = new URLSearchParams({
+        client_id: googleClientId,
+        redirect_uri: googleRedirectUri,
+        response_type: 'code',
+        scope: 'openid',
+        state: direction,
+      });
+      ctx.response.redirect(`${baseURL}?${params}`);
+      return;
+    }
+
+    await recordMove(gameId, direction, playerName);
+    ctx.response.status = 302;
+    ctx.response.headers.set('Location', '/');
   })
   .post('/tick', async (ctx) => {
     const apiKey = ctx.request.headers.get('x-api-key');
