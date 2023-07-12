@@ -228,7 +228,7 @@ const ui = (state: UiState) => {
             </div>
           </div>
           <div>
-            ⌛{timeUntilNextMove.hours}:{timeUntilNextMove.minutes}
+            ⌛{timeUntilNextMove.hours}h {timeUntilNextMove.minutes}m
           </div>
         </div>
       </body>
