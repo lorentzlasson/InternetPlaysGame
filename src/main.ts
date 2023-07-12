@@ -22,7 +22,7 @@ import statsUi from './ui/stats.tsx';
 
 const PORT = 8000;
 
-const gameId = await init();
+await init();
 
 const jwtSecret = await crypto.subtle.importKey(
   'raw',
@@ -60,7 +60,7 @@ router
     const token = await ctx.cookies.get('auth');
     const playerName = await getSubFromJwt(token);
 
-    const state = await getUiState(gameId, playerName);
+    const state = await getUiState(playerName);
 
     const userAgent = ctx.request.headers.get('User-Agent') || '';
 
@@ -70,7 +70,7 @@ router
     ctx.response.type = 'text/html';
   })
   .get('/stats', async (ctx) => {
-    const state = await getStatsUiState(gameId);
+    const state = await getStatsUiState();
     const html = statsUi(state);
     ctx.response.body = html;
     ctx.response.type = 'text/html';
@@ -118,7 +118,7 @@ router
       return;
     }
 
-    await recordMove(gameId, direction, oauthPayload.sub);
+    await recordMove(direction, oauthPayload.sub);
 
     ctx.response.status = 302;
     ctx.response.headers.set('Location', '/');
@@ -149,7 +149,7 @@ router
       return;
     }
 
-    await recordMove(gameId, direction, playerName);
+    await recordMove(direction, playerName);
     ctx.response.status = 302;
     ctx.response.headers.set('Location', '/');
   })
@@ -161,7 +161,7 @@ router
       return;
     }
 
-    await tick(gameId);
+    await tick();
 
     ctx.response.status = 200;
     return;

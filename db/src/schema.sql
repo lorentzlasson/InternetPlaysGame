@@ -37,13 +37,11 @@ create table game (
 
 create table player (
   id serial primary key,
-  game_id integer not null references game,
   name text not null unique
 );
 
 create table entity (
   id serial primary key,
-  game_id integer not null references game,
   type entity_type not null,
   position "position" not null
 );

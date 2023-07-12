@@ -31,18 +31,16 @@ const ENTITIES_INIT = [
 
 // ---------- READS ----------
 
-const findPlayer = async (gameId: number, playerName: string) => {
+const findPlayer = async (playerName: string) => {
   const players = await sql<
     ({
       id: number;
-      gameId: number;
       name: string;
     })[]
   >`
       select *
       from player
-      where game_id = ${gameId}
-      and name = ${playerName}
+      where name = ${playerName}
     `;
   return players.at(0);
 };
@@ -62,7 +60,6 @@ const findAvatar = async (): Promise<Avatar> => {
 };
 
 const positionHasEntity = async (
-  gameId: number,
   pos: Position,
   entityType: EntityType,
 ) => {
@@ -76,7 +73,6 @@ const positionHasEntity = async (
       from entity
       where type = ${entityType}
       and position = ${sql.typed.position(pos)}
-      and game_id = ${gameId}
     )
   `;
   return exists;
@@ -84,11 +80,10 @@ const positionHasEntity = async (
 
 const randomCapped = (cap: number) => Math.floor(Math.random() * cap);
 
-const randomAvailablePosition = async (gameId: number): Promise<Position> => {
+const randomAvailablePosition = async (): Promise<Position> => {
   const occupiedPositions = await sql<{ position: Position }[]>`
     select position
     from entity
-    where game_id = ${gameId}
   `;
 
   const availablePositions = POSITIONS.filter(
@@ -102,14 +97,10 @@ const randomAvailablePosition = async (gameId: number): Promise<Position> => {
 };
 
 const lastMovePerGameQuery = sql`
-  select
-    game.id,
-    coalesce(max(move.time), game.started_at) as time
-  from game
-  left join player on player.game_id = game.id
+  select coalesce(max(move.time), now()) as time
+  from player
   left join move_candidate on move_candidate.player_id = player.id
   left join move on move_candidate.id = move.move_candidate_id
-  group by game.id
 `;
 
 const freshCandidatesQuery = sql`
@@ -121,15 +112,13 @@ const freshCandidatesQuery = sql`
   )
   select
     move_candidate.id,
-    game.id as game_id,
     player.name as player_name
   from move_candidate
   inner join player on player.id = move_candidate.player_id
-  inner join game on game.id = player.game_id
   inner join last_tick on last_tick.id = move_candidate.tick_id
 `;
 
-const randomMoveCandidate = async (gameId: number) => {
+const randomMoveCandidate = async () => {
   const moveCandidates = await sql<({
     moveCandidateId: number;
     direction: Direction;
@@ -141,7 +130,6 @@ const randomMoveCandidate = async (gameId: number) => {
            fresh_candidates.player_name
     from move_candidate
     inner join fresh_candidates on fresh_candidates.id = move_candidate.id
-    where game_id = ${gameId}
     order by random()
     limit 1
   `;
@@ -149,20 +137,17 @@ const randomMoveCandidate = async (gameId: number) => {
 };
 
 export const getUiState = async (
-  gameId: number,
   playerName: string | undefined,
 ): Promise<UiState> => {
   const [dbGame] = await sql<{ score: number; highScore: number }[]>`
     select score, high_score
     from game
-    where id = ${gameId}
   `;
 
   const [{ time }] = await sql<{ time: Date }[]>`
     with last_move_per_game as (${lastMovePerGameQuery})
     select time
     from last_move_per_game
-    where last_move_per_game.id = ${gameId}
   `;
 
   const game = {
@@ -175,11 +160,10 @@ export const getUiState = async (
   const entities = await sql<{ type: EntityType; position: Position }[]>`
     select type, position
     from entity
-    where game_id = ${gameId}
   `;
 
   const signedInMoveCandidate = playerName
-    ? await getPlayerMoveCandidate(gameId, playerName)
+    ? await getPlayerMoveCandidate(playerName)
     : null;
 
   const directionPercentages = signedInMoveCandidate
@@ -199,20 +183,16 @@ export const getUiState = async (
   return state;
 };
 
-export const getStatsUiState = async (
-  gameId: number,
-): Promise<StatsUiState> => {
+export const getStatsUiState = async (): Promise<StatsUiState> => {
   const [dbGame] = await sql<{ score: number; highScore: number }[]>`
     select score, high_score
     from game
-    where id = ${gameId}
   `;
 
   const [{ time }] = await sql<{ time: Date }[]>`
     with last_move_per_game as (${lastMovePerGameQuery})
     select time
     from last_move_per_game
-    where last_move_per_game.id = ${gameId}
   `;
 
   const game = {
@@ -225,12 +205,10 @@ export const getStatsUiState = async (
   const entities = await sql<{ type: EntityType; position: Position }[]>`
     select type, position
     from entity
-    where game_id = ${gameId}
   `;
   const players = await sql<{ name: string }[]>`
     select name
     from player
-    where game_id = ${gameId}
   `;
 
   const dbMoveHistory = await sql<
@@ -240,7 +218,6 @@ export const getStatsUiState = async (
     from move m
     inner join move_candidate mc on mc.id = m.move_candidate_id
     inner join player p on p.id = mc.player_id
-    where p.game_id = ${gameId}
   `;
 
   const dbMoveCandidates = await sql<{ name: string; direction: Direction }[]>`
@@ -250,7 +227,6 @@ export const getStatsUiState = async (
     from move_candidate
     inner join fresh_candidates on fresh_candidates.id = move_candidate.id
     inner join player on player.id = move_candidate.player_id
-    where fresh_candidates.game_id = ${gameId}
   `;
 
   const moveCandidates = dbMoveCandidates.map(({ direction, name }) => ({
@@ -292,14 +268,13 @@ const hasFreshMoveCandidate = async (playerName: string) => {
   return exists;
 };
 
-const getPlayerMoveCandidate = async (gameId: number, playerName: string) => {
+const getPlayerMoveCandidate = async (playerName: string) => {
   const moveCandidates = await sql<{ name: string; direction: Direction }[]>`
     with fresh_candidates as (${freshCandidatesQuery})
     select move_candidate.direction
     from move_candidate
     inner join fresh_candidates on fresh_candidates.id = move_candidate.id
     inner join player on player.id = move_candidate.player_id
-    where fresh_candidates.game_id = ${gameId}
     and player.name = ${playerName}
   `;
   const x = moveCandidates.at(0);
@@ -314,7 +289,7 @@ const getPlayerMoveCandidate = async (gameId: number, playerName: string) => {
   };
 };
 
-const getLastAvatarPosition = async (): Promise<Position> => {
+const getLastAvatarPosition = async (): Promise<Position | null> => {
   const lastMoveDirectionRows = await sql<
     { direction: Direction }[]
   >`
@@ -389,34 +364,27 @@ export const init = async () => {
 
   console.log('game.new', { newGameId });
 
-  const entityValues = ENTITIES_INIT.map((entity_init) => ({
-    ...entity_init,
-    gameId: newGameId,
-  }));
-
   await sql`
-    insert into entity ${sql(entityValues)}
+    insert into entity ${sql(ENTITIES_INIT)}
   `;
 
   return newGameId;
 };
 
-const respawn = async (gameId: number, entityType: EntityType) => {
-  const newPos = await randomAvailablePosition(gameId);
+const respawn = async (entityType: EntityType) => {
+  const newPos = await randomAvailablePosition();
 
   return sql`
     update entity
     set position = ${sql.typed.position(newPos)}
     where type = ${entityType}
-    and game_id = ${gameId}
   `;
 };
 
-const collectCoin = async (gameId: number) => {
+const collectCoin = async () => {
   const [scores] = await sql<{ score: number; highScore: number }[]>`
     select score, high_score
     from game
-    where id = ${gameId}
   `;
 
   const score = scores.score;
@@ -428,27 +396,24 @@ const collectCoin = async (gameId: number) => {
     await sql`
       update game
       set high_score = ${newScore}
-      where id = ${gameId}
     `;
   }
 
   await sql`
     update game
     set score = ${newScore}
-    where id = ${gameId}
   `;
 
-  respawn(gameId, 'coin');
+  respawn('coin');
 };
 
-const blowUpBomb = async (gameId: number) => {
+const blowUpBomb = async () => {
   await sql`
     update game
     set score = 0
-    where id = ${gameId}
   `;
 
-  respawn(gameId, 'bomb');
+  respawn('bomb');
 };
 
 const registerMove = (moveCandidateId: number) =>
@@ -463,20 +428,20 @@ const registerMove = (moveCandidateId: number) =>
   `,
   ]);
 
-const createPlayer = async (gameId: number, playerName: string) => {
-  const [player] = await sql<{ id: number; gameId: number; name: string }[]>`
-    insert into player (name, game_id)
-    values (${playerName}, ${gameId})
+const createPlayer = async (playerName: string) => {
+  const [player] = await sql<{ id: number; name: string }[]>`
+    insert into player (name)
+    values (${playerName})
     returning *
   `;
   return player;
 };
 
-const ensurePlayer = async (gameId: number, playerName: string) => {
-  const player = await findPlayer(gameId, playerName);
+const ensurePlayer = async (playerName: string) => {
+  const player = await findPlayer(playerName);
 
   if (!player) {
-    return createPlayer(gameId, playerName);
+    return createPlayer(playerName);
   }
   return player;
 };
@@ -495,11 +460,10 @@ const insertMoveCandidate = (direction: Direction, playerId: number) =>
   `;
 
 export const recordMove = async (
-  gameId: number,
   direction: Direction,
   playerName: string,
 ) => {
-  const player = await ensurePlayer(gameId, playerName);
+  const player = await ensurePlayer(playerName);
 
   const hasFresh = await hasFreshMoveCandidate(playerName);
 
@@ -511,8 +475,8 @@ export const recordMove = async (
   }
 };
 
-export const tick = async (gameId: number) => {
-  const nextMove = await randomMoveCandidate(gameId);
+export const tick = async () => {
+  const nextMove = await randomMoveCandidate();
 
   if (nextMove) {
     const avatar = await findAvatar();
@@ -532,12 +496,12 @@ export const tick = async (gameId: number) => {
         where type = ${avatar.type}
       `;
 
-      if (await positionHasEntity(gameId, newPosition, 'coin')) {
-        await collectCoin(gameId);
+      if (await positionHasEntity(newPosition, 'coin')) {
+        await collectCoin();
       }
 
-      if (await positionHasEntity(gameId, newPosition, 'bomb')) {
-        await blowUpBomb(gameId);
+      if (await positionHasEntity(newPosition, 'bomb')) {
+        await blowUpBomb();
       }
 
       console.log('move.executed', { playerName, direction, newPosition });

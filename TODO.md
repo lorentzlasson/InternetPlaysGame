@@ -1,4 +1,3 @@
 - limit rate
-- remove game id
 - patch smoke test
 - hint mode?
