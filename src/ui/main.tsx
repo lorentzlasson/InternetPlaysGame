@@ -5,7 +5,9 @@ import {
   Direction,
   DirectionPercentage,
   DIRECTIONS,
+  Emoji,
   EMOJI_MAP,
+  Entity,
   HEIGHT,
   isSamePosition,
   range,
@@ -76,9 +78,23 @@ const getOpacityForDirection = (
   return opacity;
 };
 
+const getShareableBoard = (entities: readonly Entity[]) => {
+  const rows = range(HEIGHT).map((y) => {
+    const cells = range(WIDTH).map((x) => {
+      const entity = entities.find((e) => isSamePosition(e.position, [x, y]));
+      const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
+      return emoji;
+    });
+    return cells.join('') + '\\n';
+  });
+  return rows.join('');
+};
+
 const ui = (state: UiState) => {
   const opacities = transformPercentagesToOpacity(state.directionPercentages);
   const timeUntilNextMove = getTimeUntilNextMove();
+  const sharableBoard = getShareableBoard(state.entities);
+
   return (
     <html>
       <head>
@@ -90,8 +106,20 @@ const ui = (state: UiState) => {
         >
         </meta>
       </head>
+
+      <script>
+        {`
+        window.onload = () => {
+          document.getElementById('board').addEventListener('click', () => {
+            navigator.clipboard.writeText('${sharableBoard}');
+            alert('Copied to clipboard:\\n ${sharableBoard}')
+          });
+        }
+      `}
+      </script>
       <body>
         <div
+          id='board'
           style={{
             fontSize: '25vw',
             display: 'flex',

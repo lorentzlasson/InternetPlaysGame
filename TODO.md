@@ -1,4 +1,3 @@
-- emoji export function
 - create desktop view
 - limit rate
 - remove game id
