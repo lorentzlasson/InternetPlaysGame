@@ -16,8 +16,9 @@ import {
   getOpacityForDirection,
   getShareableBoard,
   getTimeUntilNextMove,
+  script,
   transformPercentagesToOpacity,
-} from './common.ts';
+} from './common.tsx';
 
 const ui = (state: UiState) => {
   const opacities = transformPercentagesToOpacity(state.directionPercentages);
@@ -34,18 +35,9 @@ const ui = (state: UiState) => {
           content='width=device-width, initial-scale=1.0'
         >
         </meta>
-      </head>
 
-      <script>
-        {`
-        window.onload = () => {
-          document.getElementById('board').addEventListener('click', () => {
-            navigator.clipboard.writeText('${sharableBoard}');
-            alert('Copied to clipboard:\\n ${sharableBoard}')
-          });
-        }
-      `}
-      </script>
+        {script(sharableBoard)}
+      </head>
       <body>
         <div
           id='board'
