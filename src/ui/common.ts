@@ -1,12 +1,8 @@
-/** @jsx h */
-import { h } from 'nano_jsx';
-
 import {
   Direction,
   DirectionPercentage,
   DIRECTIONS,
   EMOJI_MAP,
-  Entity,
   HEIGHT,
   isSamePosition,
   range,
@@ -87,22 +83,3 @@ export const getShareableBoard = (entities: readonly Entity[]) => {
   });
   return rows.join('');
 };
-
-export const script = (sharableBoard: string) => (
-  <script>
-    {`
-        window.onload = () => {
-          document.getElementById('board').addEventListener('click', () => {
-            if (navigator.share) {
-              navigator.share({
-                text: '${sharableBoard}'
-              })
-            } else {
-              navigator.clipboard.writeText('${sharableBoard}');
-              alert('Copied to clipboard:\\n ${sharableBoard}')
-            }
-          });
-        }
-      `}
-  </script>
-);
