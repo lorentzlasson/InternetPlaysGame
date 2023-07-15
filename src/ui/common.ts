@@ -6,6 +6,7 @@ import {
   HEIGHT,
   isSamePosition,
   range,
+  UiState,
   WIDTH,
 } from '../common.ts';
 
@@ -72,14 +73,21 @@ export const getOpacityForDirection = (
   return opacity;
 };
 
-export const getShareableBoard = (entities: readonly Entity[]) => {
+export const getShareableText = (state: UiState) => {
   const rows = range(HEIGHT).map((y) => {
     const cells = range(WIDTH).map((x) => {
-      const entity = entities.find((e) => isSamePosition(e.position, [x, y]));
+      const entity = state.entities.find((e) =>
+        isSamePosition(e.position, [x, y])
+      );
       const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
       return emoji;
     });
     return cells.join('') + '\\n';
   });
-  return rows.join('');
+  const board = rows.join('');
+  const maybeMoveCandidate = state.signedInMoveCandidate
+    ? '🗳️' + DIRECTION_EMOJI_MAP[state.signedInMoveCandidate.direction]
+    : '';
+
+  return board + maybeMoveCandidate;
 };

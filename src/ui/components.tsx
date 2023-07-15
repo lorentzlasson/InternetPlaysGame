@@ -14,13 +14,13 @@ import {
 import {
   DIRECTION_EMOJI_MAP,
   getOpacityForDirection,
-  getShareableBoard,
+  getShareableText,
   getTimeUntilNextMove,
   transformPercentagesToOpacity,
 } from './common.ts';
 
 export const script = (state: UiState) => {
-  const sharableBoard = getShareableBoard(state.entities);
+  const text = getShareableText(state);
   return (
     <script>
       {`
@@ -28,11 +28,11 @@ export const script = (state: UiState) => {
           document.getElementById('board').addEventListener('click', () => {
             if (navigator.share) {
               navigator.share({
-                text: '${sharableBoard}'
+                text: '${text}'
               })
             } else {
-              navigator.clipboard.writeText('${sharableBoard}');
-              alert('Copied to clipboard:\\n ${sharableBoard}')
+              navigator.clipboard.writeText('${text}');
+              alert('Copied to clipboard:\\n ${text}')
             }
           });
         }
