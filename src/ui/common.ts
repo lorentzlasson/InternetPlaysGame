@@ -82,7 +82,7 @@ export const getShareableText = (state: UiState) => {
       const emoji = entity ? EMOJI_MAP[entity.type] : EMOJI_MAP.blank;
       return emoji;
     });
-    return cells.join('') + '\\n';
+    return cells.join('') + '\n';
   });
   const board = rows.join('');
   const maybeMoveCandidate = state.signedInMoveCandidate

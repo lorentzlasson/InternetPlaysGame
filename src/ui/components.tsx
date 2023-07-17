@@ -19,24 +19,28 @@ import {
   transformPercentagesToOpacity,
 } from './common.ts';
 
+const clientSideScript = (text: string) => {
+  window.onload = () =>
+    document.getElementById('board')?.addEventListener(
+      'click',
+      () => {
+        if (navigator.share) {
+          navigator.share({
+            text,
+          });
+        } else {
+          navigator.clipboard.writeText(text);
+          alert(`Copied to clipboard:\n ${text}`);
+        }
+      },
+    );
+};
+
 export const script = (state: UiState) => {
   const text = getShareableText(state);
   return (
     <script>
-      {`
-        window.onload = () => {
-          document.getElementById('board').addEventListener('click', () => {
-            if (navigator.share) {
-              navigator.share({
-                text: '${text}'
-              })
-            } else {
-              navigator.clipboard.writeText('${text}');
-              alert('Copied to clipboard:\\n ${text}')
-            }
-          });
-        }
-      `}
+      {`(${clientSideScript.toString()})(${JSON.stringify(text)})`}
     </script>
   );
 };
