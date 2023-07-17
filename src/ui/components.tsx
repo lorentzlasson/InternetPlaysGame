@@ -161,3 +161,19 @@ export const moveCandidate = (state: UiState, vw: number) => (
     </div>
   )
 );
+
+export const signIn = (state: UiState, vw: number) => (
+  !state.signedInPlayer &&
+  (
+    <a
+      href='/auth'
+      style={{
+        fontSize: `${vw}vw`,
+        cursor: 'pointer',
+        textDecoration: 'none',
+      }}
+    >
+      👤➡️🚪
+    </a>
+  )
+);

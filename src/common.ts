@@ -49,7 +49,7 @@ export type UiState = {
   entities: readonly Entity[];
   lastAvatarPosition: Position | null;
   directionPercentages: readonly DirectionPercentage[];
-
+  signedInPlayer: string | null;
   signedInMoveCandidate: MoveCandidate | null;
 };
 

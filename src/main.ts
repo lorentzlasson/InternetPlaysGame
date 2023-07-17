@@ -35,7 +35,7 @@ const jwtSecret = await crypto.subtle.importKey(
 const router = new Router();
 
 const getSubFromJwt = async (token: string | undefined) => {
-  if (!token) return;
+  if (!token) return null;
 
   try {
     const { sub } = await verify(token, jwtSecret);
@@ -45,8 +45,21 @@ const getSubFromJwt = async (token: string | undefined) => {
     return sub;
   } catch (e) {
     console.log(e);
-    return;
+    return null;
   }
+};
+
+const buildOauthRedirectUrl = (state: string | null = null) => {
+  const baseURL = 'https://accounts.google.com/o/oauth2/v2/auth';
+  const baseParams = {
+    client_id: googleClientId,
+    redirect_uri: googleRedirectUri,
+    response_type: 'code',
+    scope: 'openid',
+  };
+  const params = state ? { ...baseParams, state } : baseParams;
+  const queryParams = new URLSearchParams(params);
+  return `${baseURL}?${queryParams}`;
 };
 
 router
@@ -74,6 +87,11 @@ router
     const html = statsUi(state);
     ctx.response.body = html;
     ctx.response.type = 'text/html';
+  })
+  .get('/auth', (ctx) => {
+    const url = buildOauthRedirectUrl();
+    console.log({ url });
+    ctx.response.redirect(url);
   })
   .get('/auth/callback', async (ctx) => {
     const code = ctx.request.url.searchParams.get('code');
@@ -113,12 +131,9 @@ router
       secure: secureCookie,
     });
 
-    if (!isDirection(direction)) {
-      ctx.response.status = 400;
-      return;
+    if (isDirection(direction)) {
+      await recordMove(direction, oauthPayload.sub);
     }
-
-    await recordMove(direction, oauthPayload.sub);
 
     ctx.response.status = 302;
     ctx.response.headers.set('Location', '/');
@@ -137,15 +152,9 @@ router
     }
 
     if (!playerName) {
-      const baseURL = 'https://accounts.google.com/o/oauth2/v2/auth';
-      const params = new URLSearchParams({
-        client_id: googleClientId,
-        redirect_uri: googleRedirectUri,
-        response_type: 'code',
-        scope: 'openid',
-        state: direction,
-      });
-      ctx.response.redirect(`${baseURL}?${params}`);
+      const url = buildOauthRedirectUrl(direction);
+      console.log({ url });
+      ctx.response.redirect(url);
       return;
     }
 

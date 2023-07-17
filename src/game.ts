@@ -137,7 +137,7 @@ const randomMoveCandidate = async () => {
 };
 
 export const getUiState = async (
-  playerName: string | undefined,
+  playerName: string | null,
 ): Promise<UiState> => {
   const [dbGame] = await sql<{ score: number; highScore: number }[]>`
     select score, high_score
@@ -170,6 +170,8 @@ export const getUiState = async (
     ? await getDirectionPercentages()
     : [];
 
+  const signedInPlayer = playerName;
+
   const lastAvatarPosition = await getLastAvatarPosition();
 
   const state = {
@@ -177,6 +179,7 @@ export const getUiState = async (
     entities,
     directionPercentages,
     signedInMoveCandidate,
+    signedInPlayer,
     lastAvatarPosition,
   };
 
