@@ -132,7 +132,7 @@ const ui = (state: StatsUiState) => (
           </div>
         </div>
       </div>
-      <div style={{ fontSize: '1vw' }}>
+      <div style={{ fontSize: '2vw' }}>
         <div style={{ paddingBottom: '10px' }}>
           Move condidates:
           {state.moveCandidates.map(({ player: { name }, direction }) => (
@@ -159,7 +159,7 @@ const ui = (state: StatsUiState) => (
               .slice(0)
               .reverse()
               .map(({ player: { name }, direction, time }) => (
-                <tr>
+                <tr style={{ fontSize: '2vw' }}>
                   <td>{prettifyDate(time)}</td>
                   <td>{prettifyName(name)}</td>
                   <td>{DIRECTION_EMOJI_MAP[direction]}</td>

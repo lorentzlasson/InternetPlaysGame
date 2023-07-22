@@ -1,3 +1,2 @@
 - patch smoke test
-- fix stats font size
 - hint mode?
