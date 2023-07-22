@@ -9,7 +9,7 @@ import {
   moveCandidate,
   scores,
   script,
-  signIn,
+  signInOrShare,
   timer,
 } from './components.tsx';
 
@@ -26,10 +26,17 @@ const ui = (state: UiState) => {
           {board(state, 10)}
           {buttons(state, 7.3)}
         </div>
-        <div style={{ fontSize: '5vw', paddingLeft: '20px' }}>
+        <div
+          style={{
+            fontSize: '5vw',
+            paddingLeft: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           {timer(5)}
           {scores(state, 5)}
-          {signIn(state, 5)}
+          {signInOrShare(state, 5)}
           {moveCandidate(state, 5)}
         </div>
       </body>

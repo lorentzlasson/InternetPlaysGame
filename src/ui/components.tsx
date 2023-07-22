@@ -21,7 +21,7 @@ import {
 
 const clientSideScript = (text: string) => {
   window.onload = () =>
-    document.getElementById('board')?.addEventListener(
+    document.getElementById('share')?.addEventListener(
       'click',
       () => {
         if (navigator.share) {
@@ -46,13 +46,16 @@ export const script = (state: UiState) => {
 };
 
 export const board = (state: UiState, vw: number) => (
-  <div
+  <a
     id='board'
+    href='/info'
     style={{
       fontSize: `${vw}vw`,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
+      textDecoration: 'none',
+      cursor: 'default',
     }}
   >
     {range(HEIGHT).map((y) => (
@@ -96,7 +99,7 @@ export const board = (state: UiState, vw: number) => (
         })}
       </div>
     ))}
-  </div>
+  </a>
 );
 
 export const buttons = (state: UiState, vw: number) => {
@@ -166,6 +169,10 @@ export const moveCandidate = (state: UiState, vw: number) => (
   )
 );
 
+export const signInOrShare = (state: UiState, vw: number) => (
+  state.signedInPlayer ? share(vw) : signIn(state, vw)
+);
+
 export const signIn = (state: UiState, vw: number) => (
   !state.signedInPlayer &&
   (
@@ -179,5 +186,20 @@ export const signIn = (state: UiState, vw: number) => (
     >
       👤➡️🚪
     </a>
+  )
+);
+
+export const share = (vw: number) => (
+  (
+    <div
+      id='share'
+      style={{
+        fontSize: `${vw}vw`,
+        cursor: 'pointer',
+        textDecoration: 'none',
+      }}
+    >
+      🗣️
+    </div>
   )
 );

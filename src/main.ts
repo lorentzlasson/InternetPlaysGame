@@ -19,6 +19,7 @@ import {
 import mobileUi from './ui/mobile.tsx';
 import desktopUi from './ui/desktop.tsx';
 import statsUi from './ui/stats.tsx';
+import infoUi from './ui/info.tsx';
 
 const PORT = 8000;
 
@@ -85,6 +86,11 @@ router
   .get('/stats', async (ctx) => {
     const state = await getStatsUiState();
     const html = statsUi(state);
+    ctx.response.body = html;
+    ctx.response.type = 'text/html';
+  })
+  .get('/info', (ctx) => {
+    const html = infoUi();
     ctx.response.body = html;
     ctx.response.type = 'text/html';
   })
