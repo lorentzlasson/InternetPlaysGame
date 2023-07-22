@@ -96,7 +96,6 @@ router
   })
   .get('/auth', (ctx) => {
     const url = buildOauthRedirectUrl();
-    console.log({ url });
     ctx.response.redirect(url);
   })
   .get('/auth/callback', async (ctx) => {
@@ -159,7 +158,6 @@ router
 
     if (!playerName) {
       const url = buildOauthRedirectUrl(direction);
-      console.log({ url });
       ctx.response.redirect(url);
       return;
     }
