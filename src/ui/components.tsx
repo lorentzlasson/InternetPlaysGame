@@ -169,10 +169,6 @@ export const moveCandidate = (state: UiState, vw: number) => (
   )
 );
 
-export const signInOrShare = (state: UiState, vw: number) => (
-  state.signedInPlayer ? share(vw) : signIn(state, vw)
-);
-
 export const signIn = (state: UiState, vw: number) => (
   !state.signedInPlayer &&
   (

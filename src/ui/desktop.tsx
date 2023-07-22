@@ -9,7 +9,8 @@ import {
   moveCandidate,
   scores,
   script,
-  signInOrShare,
+  share,
+  signIn,
   timer,
 } from './components.tsx';
 
@@ -36,7 +37,8 @@ const ui = (state: UiState) => {
         >
           {timer(5)}
           {scores(state, 5)}
-          {signInOrShare(state, 5)}
+          {share(5)}
+          {signIn(state, 5)}
           {moveCandidate(state, 5)}
         </div>
       </body>
