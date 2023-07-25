@@ -1,18 +1,6 @@
 /** @jsx h */
 import { h, renderSSR } from 'nano_jsx';
 
-import { UiState } from '../common.ts';
-
-import {
-  board,
-  buttons,
-  moveCandidate,
-  scores,
-  script,
-  signIn,
-  timer,
-} from './components.tsx';
-
 const ui = () => {
   return (
     <html>
