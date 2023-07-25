@@ -91,3 +91,33 @@ export const getShareableText = (state: UiState) => {
 
   return board + maybeMoveCandidate;
 };
+
+const DIGIT_EMOJI_MAP = {
+  '0': '0️⃣',
+  '1': '1️⃣',
+  '2': '2️⃣',
+  '3': '3️⃣',
+  '4': '4️⃣',
+  '5': '5️⃣',
+  '6': '6️⃣',
+  '7': '7️⃣',
+  '8': '8️⃣',
+  '9': '9️⃣',
+} as const;
+
+const isKeyOfDigitEmojiMap = (
+  key: string,
+): key is keyof typeof DIGIT_EMOJI_MAP => key in DIGIT_EMOJI_MAP;
+
+export const getNumberAsEmoji = (number: number): string =>
+  number
+    .toString()
+    .split('')
+    .map((digit) => {
+      if (isKeyOfDigitEmojiMap(digit)) {
+        return DIGIT_EMOJI_MAP[digit];
+      } else {
+        throw new Error(`Invalid digit: ${digit}`);
+      }
+    })
+    .join('');

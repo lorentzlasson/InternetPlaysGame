@@ -13,6 +13,7 @@ import {
 
 import {
   DIRECTION_EMOJI_MAP,
+  getNumberAsEmoji,
   getOpacityForDirection,
   getShareableText,
   getTimeUntilNextMove,
@@ -143,19 +144,21 @@ export const buttons = (state: UiState, vw: number) => {
 export const scores = (state: UiState, vw: number) => (
   <div style={{ display: 'flex', fontSize: `${vw}vw` }}>
     <div style={{ display: 'flex' }}>
-      🪙<div>{state.score}</div>
+      🪙<div>{getNumberAsEmoji(state.score)}</div>
     </div>
     <div style={{ display: 'flex' }}>
-      🥇<div>{state.highScore}</div>
+      🥇<div>{getNumberAsEmoji(state.highScore)}</div>
     </div>
   </div>
 );
 
 export const timer = (vw: number) => {
   const timeUntilNextMove = getTimeUntilNextMove();
+  const hours = getNumberAsEmoji(timeUntilNextMove.hours);
+  const minutes = getNumberAsEmoji(timeUntilNextMove.minutes);
   return (
     <div style={{ fontSize: `${vw}vw` }}>
-      ⌛{timeUntilNextMove.hours}h {timeUntilNextMove.minutes}m
+      ⌛{hours}🇭 {minutes}🇲
     </div>
   );
 };
