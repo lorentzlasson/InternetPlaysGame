@@ -44,8 +44,8 @@ const ui = () => {
           </div>
           <div style={{ display: 'flex' }}>
             <div style={{ opacity: '0.2' }}>
-              🏃
-            </div>{' '}
+              🏃&nbsp;
+            </div>
             The previous position of the avatar
           </div>
           <div>
