@@ -35,11 +35,11 @@ const ui = (state: UiState) => {
             flexDirection: 'column',
           }}
         >
-          {timer(5)}
-          {scores(state, 5)}
-          {share(5)}
-          {signIn(state, 5)}
-          {moveCandidate(state, 5)}
+          {timer(3)}
+          {scores(state, 3)}
+          {share(3)}
+          {signIn(state, 3)}
+          {moveCandidate(state, 3)}
         </div>
       </body>
     </html>
