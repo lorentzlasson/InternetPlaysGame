@@ -1,1 +1,2 @@
 - patch smoke test
+- secure cookie
