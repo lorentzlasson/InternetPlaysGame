@@ -21,28 +21,16 @@ Deno.test('smoke', async () => {
     assertScore(0),
   ]);
 
-  await recordMoves([
-    { direction: 'right', name: 'alice' },
-    { direction: 'right', name: 'bob' },
-  ]);
+  await recordMoves([['alice', 'right'], ['bob', 'right']]);
   await executeMove();
 
-  await recordMoves([
-    { direction: 'right', name: 'alice' },
-    { direction: 'right', name: 'bob' },
-  ]);
+  await recordMoves([['alice', 'right'], ['bob', 'right']]);
   await executeMove();
 
-  await recordMoves([
-    { direction: 'up', name: 'alice' },
-    { direction: 'up', name: 'bob' },
-  ]);
+  await recordMoves([['alice', 'up'], ['bob', 'up']]);
   await executeMove();
 
-  await recordMoves([
-    { direction: 'up', name: 'alice' },
-    { direction: 'up', name: 'bob' },
-  ]);
+  await recordMoves([['alice', 'up'], ['bob', 'up']]);
   await executeMove();
 
   await loadPage();
@@ -54,28 +42,16 @@ Deno.test('smoke', async () => {
   ]);
 
   // tries to go out of bounds
-  await recordMoves([
-    { direction: 'up', name: 'alice' },
-    { direction: 'up', name: 'chad' },
-  ]);
+  await recordMoves([['alice', 'up'], ['chad', 'up']]);
   await executeMove();
 
-  await recordMoves([
-    { direction: 'left', name: 'alice' },
-    { direction: 'left', name: 'chad' },
-  ]);
+  await recordMoves([['alice', 'left'], ['chad', 'left']]);
   await executeMove();
 
-  await recordMoves([
-    { direction: 'down', name: 'alice' },
-    { direction: 'down', name: 'chad' },
-  ]);
+  await recordMoves([['alice', 'down'], ['chad', 'down']]);
   await executeMove();
 
-  await recordMoves([
-    { direction: 'left', name: 'alice' },
-    { direction: 'left', name: 'chad' },
-  ]);
+  await recordMoves([['alice', 'left'], ['chad', 'left']]);
   await executeMove();
 
   await loadPage();

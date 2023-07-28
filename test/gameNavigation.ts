@@ -6,7 +6,7 @@ import { Direction, Emoji, Position } from '../src/common.ts';
 import { jwtSecret as rawJwtSecret, tickerApiKey } from '../src/config.ts';
 import * as jwtUtil from '../src/jwt.ts';
 
-type MoveAttempt = { name: string; direction: Direction };
+type MoveAttempt = [string, Direction];
 
 const GAME_URL = Deno.env.get('GAME_URL') || 'http://localhost:8000';
 
@@ -38,7 +38,7 @@ const recordMove = async (page: Page, direction: string) => {
 const loadPage = (page: Page) => () => page.location(GAME_URL);
 
 const recordMoves = (page: Page) => async (moveAttempts: MoveAttempt[]) => {
-  for await (const { name, direction } of moveAttempts) {
+  for await (const [name, direction] of moveAttempts) {
     await fakeSignIn(page, name);
     await recordMove(page, direction);
   }
