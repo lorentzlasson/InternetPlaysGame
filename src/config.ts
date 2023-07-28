@@ -21,6 +21,14 @@ const parseBooleanEnv = (key: string) =>
     .transform((value) => value.toLowerCase() === 'true')
     .parse(parseEnv(key));
 
+const parseNumberEnvWithDefault = (key: string, def: string) =>
+  z.string()
+    .default(def)
+    .transform(Number)
+    .parse(Deno.env.get(key));
+
+export const port = parseNumberEnvWithDefault('PORT', '8000');
+
 export const dbUrl = parseStringEnv('DB_URL');
 
 export const jwtSecret = parseStringEnv('JWT_SECRET');

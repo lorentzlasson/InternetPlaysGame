@@ -1,8 +1,6 @@
 services:
   game:
     build: .
-    ports:
-      - "8000:8000"
     environment:
       POSTGRES_HOST: db
       POSTGRES_DB: ${POSTGRES_DB}
@@ -11,22 +9,6 @@ services:
       - ./deno.jsonc:/app/deno.jsonc
       - ./import_map.json:/app/import_map.json
       - ./.env:/app/.env
-
-  smoke_test:
-    build:
-      context: .
-      dockerfile: ./test/Dockerfile
-    environment:
-      GAME_URL: http://game:8000
-      DEBUG: $(DEBUG)
-    profiles:
-      - test
-    volumes:
-      - ./test:/app/test
-      - ./src:/app/src
-      - ./deno.jsonc:/app/deno.jsonc
-      - ./import_map.json:/app/import_map.json
-      - ./.env:/app/.env # Need all to comply with env schema
 
   db:
     image: postgres:15

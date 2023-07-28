@@ -8,6 +8,7 @@ import {
   googleClientSecret,
   googleRedirectUri,
   jwtSecret as rawJwtSecret,
+  port,
   secureCookie,
   tickerApiKey,
 } from './config.ts';
@@ -15,8 +16,6 @@ import mobileUi from './ui/mobile.tsx';
 import desktopUi from './ui/desktop.tsx';
 import statsUi from './ui/stats.tsx';
 import infoUi from './ui/info.tsx';
-
-const PORT = 8000;
 
 const jwtSecret = await jwtUtil.encodeSecret(rawJwtSecret);
 const router = new Router();
@@ -152,4 +151,4 @@ const app = new Application();
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-app.listen({ port: PORT });
+app.listen({ port });

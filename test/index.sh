@@ -10,6 +10,8 @@ echo "# STARTING GAME SERVER IN CONTAINER"
 docker compose up --detach db
 sleep 2 # Not very robust
 
+export COMPOSE_FILE=compose.yaml:compose.test.yaml
+
 # Clear database from data from previous run
 docker compose exec --env=DB=${POSTGRES_TEST_DB} db bash -c "./util/reset_db.sh"
 
