@@ -1,11 +1,6 @@
 import { Application, Router } from 'https://deno.land/x/oak@v12.5.0/mod.ts';
-import {
-  create,
-  decode,
-  Header,
-  Payload,
-  verify,
-} from 'https://deno.land/x/djwt@v2.9/mod.ts';
+import { decode } from 'https://deno.land/x/djwt@v2.9/mod.ts';
+import * as jwtUtil from '../src/jwt.ts';
 import { getStatsUiState, getUiState, init, recordMove, tick } from './game.ts';
 import { isDirection } from './common.ts';
 import {
@@ -23,32 +18,10 @@ import infoUi from './ui/info.tsx';
 
 const PORT = 8000;
 
-await init();
-
-const jwtSecret = await crypto.subtle.importKey(
-  'raw',
-  new TextEncoder().encode(rawJwtSecret),
-  { name: 'HMAC', hash: 'SHA-512' },
-  false,
-  ['sign', 'verify'],
-);
-
+const jwtSecret = await jwtUtil.encodeSecret(rawJwtSecret);
 const router = new Router();
 
-const getSubFromJwt = async (token: string | undefined) => {
-  if (!token) return null;
-
-  try {
-    const { sub } = await verify(token, jwtSecret);
-    if (!sub) {
-      throw new Error('sub not in jwt payload');
-    }
-    return sub;
-  } catch (e) {
-    console.log(e);
-    return null;
-  }
-};
+await init();
 
 const buildOauthRedirectUrl = (state: string | null = null) => {
   const baseURL = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -72,7 +45,7 @@ router
   })
   .get('/', async (ctx) => {
     const token = await ctx.cookies.get('auth');
-    const playerName = await getSubFromJwt(token);
+    const playerName = await jwtUtil.getSub(token, jwtSecret);
 
     const state = await getUiState(playerName);
 
@@ -123,13 +96,7 @@ router
       throw new Error('sub not in google payload');
     }
 
-    const header: Header = { alg: 'HS512', typ: 'JWT' };
-    const jwtPayload: Payload = {
-      iss: 'internetplaysgame',
-      sub: oauthPayload.sub,
-    };
-
-    const jwt = await create(header, jwtPayload, jwtSecret);
+    const jwt = await jwtUtil.create(oauthPayload.sub, jwtSecret);
 
     ctx.cookies.set('auth', jwt, {
       httpOnly: true,
@@ -145,7 +112,7 @@ router
   })
   .post('/move', async (ctx) => {
     const token = await ctx.cookies.get('auth');
-    const playerName = await getSubFromJwt(token);
+    const playerName = await jwtUtil.getSub(token, jwtSecret);
 
     const body = ctx.request.body({ type: 'form' });
     const formData = await body.value;

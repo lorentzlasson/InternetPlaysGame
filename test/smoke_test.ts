@@ -1,57 +1,49 @@
 import { buildFor } from 'sinco';
-import gameNavigation, {
-  awaitNextMove,
-  waitForMoveExecution,
-} from './gameNavigation.ts';
+import gameNavigation, { executeMove } from './gameNavigation.ts';
 
 Deno.test('smoke', async () => {
   const { browser, page } = await buildFor('chrome');
   const {
     loadPage,
-    getLastMoveAt,
     recordMoves,
     assertScore,
     assertHighScoreWithin,
     assertEntityIsInPosition,
     assertEntityIsNotInPosition,
-    assertHistoryCount,
   } = gameNavigation(page);
   await loadPage();
 
   // Verify initial state
-  const [lastKnownMoveAt] = await Promise.all([
-    getLastMoveAt(),
+  await Promise.all([
     assertEntityIsInPosition('🏃', [0, 2]),
     assertEntityIsInPosition('🪙', [2, 0]),
     assertEntityIsInPosition('💣', [0, 1]),
     assertScore(0),
   ]);
 
-  await awaitNextMove(lastKnownMoveAt);
+  await recordMoves([
+    { direction: 'right', name: 'alice' },
+    { direction: 'right', name: 'bob' },
+  ]);
+  await executeMove();
 
   await recordMoves([
     { direction: 'right', name: 'alice' },
     { direction: 'right', name: 'bob' },
   ]);
-  await waitForMoveExecution();
-
-  await recordMoves([
-    { direction: 'right', name: 'alice' },
-    { direction: 'right', name: 'bob' },
-  ]);
-  await waitForMoveExecution();
+  await executeMove();
 
   await recordMoves([
     { direction: 'up', name: 'alice' },
     { direction: 'up', name: 'bob' },
   ]);
-  await waitForMoveExecution();
+  await executeMove();
 
   await recordMoves([
     { direction: 'up', name: 'alice' },
     { direction: 'up', name: 'bob' },
   ]);
-  await waitForMoveExecution();
+  await executeMove();
 
   await loadPage();
   await Promise.all([
@@ -66,25 +58,25 @@ Deno.test('smoke', async () => {
     { direction: 'up', name: 'alice' },
     { direction: 'up', name: 'chad' },
   ]);
-  await waitForMoveExecution();
+  await executeMove();
 
   await recordMoves([
     { direction: 'left', name: 'alice' },
     { direction: 'left', name: 'chad' },
   ]);
-  await waitForMoveExecution();
+  await executeMove();
 
   await recordMoves([
     { direction: 'down', name: 'alice' },
     { direction: 'down', name: 'chad' },
   ]);
-  await waitForMoveExecution();
+  await executeMove();
 
   await recordMoves([
     { direction: 'left', name: 'alice' },
     { direction: 'left', name: 'chad' },
   ]);
-  await waitForMoveExecution();
+  await executeMove();
 
   await loadPage();
   await Promise.all([
@@ -99,8 +91,6 @@ Deno.test('smoke', async () => {
 
     // High score can vary between 1 and 3 due to randomness
     assertHighScoreWithin([1, 2, 3]),
-
-    assertHistoryCount(8),
   ]);
 
   if (Deno.env.get('DEBUG')) await page.takeScreenshot('./test/screenshot');

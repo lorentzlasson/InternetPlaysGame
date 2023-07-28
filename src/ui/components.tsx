@@ -144,10 +144,10 @@ export const buttons = (state: UiState, vw: number) => {
 export const scores = (state: UiState, vw: number) => (
   <div style={{ display: 'flex', fontSize: `${vw}vw` }}>
     <div style={{ display: 'flex' }}>
-      🪙<div>{getNumberAsEmoji(state.score)}</div>
+      🪙<div id='score'>{getNumberAsEmoji(state.score)}</div>
     </div>
     <div style={{ display: 'flex' }}>
-      🥇<div>{getNumberAsEmoji(state.highScore)}</div>
+      🥇<div id='highScore'>{getNumberAsEmoji(state.highScore)}</div>
     </div>
   </div>
 );

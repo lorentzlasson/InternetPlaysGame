@@ -1,3 +1,4 @@
 echo "Reseting database $DB"
 dropdb --if-exists --username=postgres --force ${DB}
-createdb --template=my_template --username=postgres ${DB}
+createdb --username=postgres ${DB}
+psql --username=postgres --file=schema.sql ${DB}

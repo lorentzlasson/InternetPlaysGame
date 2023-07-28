@@ -6,12 +6,6 @@ set -o allexport
 source .env
 set +o allexport
 
-export COMPOSE_FILE=compose.yaml:compose.test.yaml
-
-# Used both by game server and test runner.
-# Increase if test gets flaky
-export MOVE_SELECTION_MILLIS=2000
-
 echo "# STARTING GAME SERVER IN CONTAINER"
 docker compose up --detach db
 sleep 2 # Not very robust

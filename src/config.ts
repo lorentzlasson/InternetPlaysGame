@@ -1,10 +1,16 @@
 import 'loadEnv';
 import { z } from 'zod';
 
+const parseEnv = (key: string) => {
+  const value = Deno.env.get(key);
+  if (!value) throw new Error(`${key} in not configured`);
+  return value;
+};
+
 const parseStringEnv = (key: string) =>
   z.string()
     .min(1, { message: `${key} must be at least 1 character long.` })
-    .parse(Deno.env.get(key));
+    .parse(parseEnv(key));
 
 const parseBooleanEnv = (key: string) =>
   z.string()
@@ -13,7 +19,7 @@ const parseBooleanEnv = (key: string) =>
       { message: `${key} must be either 'true' or 'false'.` },
     )
     .transform((value) => value.toLowerCase() === 'true')
-    .parse(Deno.env.get(key));
+    .parse(parseEnv(key));
 
 export const dbUrl = parseStringEnv('DB_URL');
 

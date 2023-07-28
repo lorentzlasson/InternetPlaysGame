@@ -1,8 +1,0 @@
-services:
-  game:
-    environment:
-      - MOVE_SELECTION_MILLIS=${MOVE_SELECTION_MILLIS}
-
-  smoke_test:
-    environment:
-      - MOVE_SELECTION_MILLIS=${MOVE_SELECTION_MILLIS}

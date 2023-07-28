@@ -23,8 +23,10 @@ services:
       - test
     volumes:
       - ./test:/app/test
+      - ./src:/app/src
       - ./deno.jsonc:/app/deno.jsonc
       - ./import_map.json:/app/import_map.json
+      - ./.env:/app/.env # Need all to comply with env schema
 
   db:
     image: postgres:15
