@@ -10,9 +10,7 @@
     "console": "deno repl --allow-all --eval-file=console.ts",
 
     // One stop shop to run smoke test
-    "test:smoke": "./test/index.sh",
-
-    "dbtypes:generate": "UID_GID=\"$(id -u):$(id -g)\" docker compose run --rm dbtypes_generate"
+    "test:smoke": "./test/index.sh"
   },
   "importMap": "import_map.json",
   "fmt": {
